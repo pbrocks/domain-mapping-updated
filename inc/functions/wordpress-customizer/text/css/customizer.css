@@ -1,0 +1,37 @@
+#header {
+    background: rgba(252,252,252,.2);
+}
+#avia-menu > li > a {
+font-size: 1rem;
+}
+
+#details > div > div > div > div > div.flex_column.av_one_half.flex_column_div.first.avia-builder-el-3.el_after_av_heading.el_before_av_one_half > section:nth-child(1) > div
+/* .flex_column.av_one_half.flex_column_div.first.avia-builder-el-3.el_after_av_heading.el_before_av_one_half
+*/
+
+.av-special-heading h2.av-special-heading-tag,
+.av_textblock_section .av_textblock h2 {
+	color: #b40000;
+}
+
+#tab-id-2-container > div > section
+ > div > div > ul > li > div > div > div {
+    font-size: .8rem;
+    line-height: .9;
+}
+.avia_textblock h2 {
+    margin-top: 0.5em;
+    margin-bottom: 2.5rem;
+}
+#details > div > div > div > div > div.flex_column.av_one_half.flex_column_div.first.avia-builder-el-3.el_after_av_heading.el_before_av_one_half > section:nth-child(1) > div > h2
+
+#av_section_8 > div > div > div > div > div.flex_column.av_one_third.flex_column_div.av-zero-column-padding.avia-builder-el-35.el_after_av_two_third.avia-builder-el-last,
+.avia-builder-widget-area {
+	padding: 0 2rem;
+}
+#av_section_8 > div > div > div > div > div > div section > .widget {
+    width: 77%;
+}
+#main.all_colors #after_section_2.main_color {
+	text-align: center!important;
+}

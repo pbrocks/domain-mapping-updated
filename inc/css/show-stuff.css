@@ -1,0 +1,31 @@
+/**
+ *
+ */
+
+.csc-trigger {
+    position: fixed;
+    right: 1.3rem;
+    top: 3rem;
+    z-index: 9999;
+    background-color:salmon;
+    color:#fff; 
+    z-index: 21222;
+    padding:4px 1rem;
+}
+
+.csc-trigger:hover {
+    filter: hue-rotate( 175deg );
+    cursor: pointer;
+}
+
+.csc-target {
+    display: none;
+    margin: 0px;
+    background-color: salmon;
+    left: 10%;
+    width: 75%;
+    padding: 2rem;
+    position: absolute;
+    z-index: 21222;
+    -webkit-text-stroke: 1px #44f;
+}

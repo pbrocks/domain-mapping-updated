@@ -1,0 +1,81 @@
+/**
+* Diagnostic.css
+*/
+.bootstrap-toggle {
+	border: 1px solid salmon;
+}
+.white-bg {
+	filter: hue-rotate( 190deg );
+}
+#toggle-target {
+	position: absolute;
+	background: rgba( 250, 128, 114, .7 );
+	min-height: 10rem;
+	padding: 2rem;
+	width: 70%;
+	display: none;
+	margin-left: 3.6rem;
+	bottom: 14rem;
+	z-index: 7777;
+}
+
+/*#toggle-target p {*/
+	.toggle-target {
+		color: #fff;
+		font-size: 1rem;
+		text-shadow: 1px 1px grey;
+	}
+/*#info-balloon {
+	width: 2rem;
+	}*/
+	#info-balloon {
+		cursor: pointer;
+	}
+	.toggle-button {
+		font-size: 1rem;
+		padding: 9px 1rem;
+		width: 9%;
+	}
+
+	.the-debug-bar {
+		position: relative;
+		top: 4rem;
+		z-index: 9993;
+	}
+	#clickme {
+		position: fixed;
+		z-index: 9999;
+		font-size: .9rem;
+		left: 1rem;
+		top: 6rem;
+		display: none;
+	}
+
+	#the-debug-bar.hidden:after  {
+		display: none;
+	}
+
+/* =============
+   MEDIA QUERIES
+   ============= */
+
+   /*----MEDIA QUERY INDICATOR----*/
+   #the-debug-bar:after { content: "less than 320px";font-weight:bold;position:fixed;top:5.5rem;width:100%;text-align:center;background-color:hsla(24, 100%, 50%, 0.79);color: #fff;z-index: 999;text-shadow: none;}
+   @media only screen and (min-width: 320px) { #the-debug-bar:after { content: "320 to 479px"; background-color: hsla(30,60%,40%,0.7); } }
+   @media only screen and (min-width: 480px) { #the-debug-bar:after { content: "480 to 767px"; background-color: hsla(90,60%,40%,0.7); } }
+   @media only screen and (min-width: 768px) { #the-debug-bar:after { content: "768 to 991px"; background-color: hsla(130,60%,40%,0.7); } }
+   @media only screen and (min-width: 992px) { #the-debug-bar:after { content: "992 to 1199px"; background-color: hsla(180,60%,40%,0.7); } }
+   @media only screen and (min-width: 1200px) { #the-debug-bar:after { content: "1200 to 1299px"; background-color: hsla(210,60%,40%,0.7); } }
+   @media only screen and (min-width: 1300px) { #the-debug-bar:after { content: "Responsive indicator 1300px upward"; background-color: hsla(250,60%,40%,0.7); } }
+   @media only screen and (min-width: 1600px) { #the-debug-bar:after { content: "Responsive indicator 1600px upward"; background-color: hsla(280,60%,40%,0.7); } }
+   @media only screen and (min-width: 1700px) { #the-debug-bar:after { content: "Responsive indicator 1700px upward"; background-color: hsla(320,60%,40%,0.7); } }
+   @media only screen and (min-width: 1800px) { #the-debug-bar:after { content: "Responsive indicator 1800px upward"; background-color: hsla(350,60%,40%,0.7); } }
+
+   @media all and (max-width:768px) {
+   	.the-debug-bar {
+   		top: 3.5rem;
+   	}
+   }
+
+
+

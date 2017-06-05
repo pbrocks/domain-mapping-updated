@@ -1,0 +1,20 @@
+.stack-trace {
+	margin: 3px 20px;
+	padding-left: 30px;
+	text-indent: -30px;
+	line-height: 1.3em;
+}
+
+.stack-trace-title {
+	margin-bottom: 5px;
+	font-style: italic;
+}
+
+.stack-trace .code {
+	background: #eaeaea;
+	background: rgba(0,0,0,.07);
+}
+
+.stack-trace .code-highlight:hover {
+	background: rgba(0,0,0,.14);
+}

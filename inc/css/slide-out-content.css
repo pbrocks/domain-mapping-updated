@@ -1,0 +1,64 @@
+	
+/*.wrapper {
+	margin-right: 50px;
+}
+*/
+.nav-side {
+	position: fixed;
+	right: 0;
+	top: 0;
+	height: 100%;
+	width: 100%;
+	max-width: 350px;
+	background-color: salmon;
+	box-sizing: border-box;
+	padding: 2rem;
+	color: white;
+	margin-right: -350px;
+	transition: margin 200ms ease-in-out;
+}
+
+.nav-side.nav-open {
+	margin-right: 0;
+	box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.slide-out-content {
+	position: relative;
+	top: 3rem;
+}
+
+.trigger-side {
+	border: none;
+	border-color: transparent;
+	background-color: transparent;
+}
+
+/*
+add this to html
+<a href="#" class="nav-toggle"></a>
+and then uncomment
+.nav-toggle:before {
+	content: "\2190";
+	font-weight: 600;
+	color: white;
+	line-height: 3rem;
+}
+
+.nav-side.nav-open .nav-toggle:before {
+	content: "\2192";
+}
+
+.nav-toggle {
+	position: absolute;
+	left: -3rem;
+	top: 3rem;
+	width:  3rem;
+	height: 6rem;
+	background-color: #40f1cd;
+	text-decoration: none;
+	text-align: center;
+	border-bottom-right-radius: 3px;
+	box-shadow: 1px 0 3px rgba(0, 0, 0, 0.1);
+}
+*/
