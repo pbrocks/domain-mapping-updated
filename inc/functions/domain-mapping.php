@@ -9,14 +9,8 @@ function dm_text_domain() {
 	load_plugin_textdomain( 'domain-mapping-updated', basename( dirname( __FILE__ ) ) . 'languages', 'domain-mapping-updated/languages' );
 }
 add_action( 'init', 'dm_text_domain' );
-/**
- * [domain_mapping_warning description]
- *
- * @return [type] [description]
- */
-function domain_mapping_warning() {
-	echo "<div id='domain-mapping-warning' class='updated fade'><p><strong>" . __( 'Domain Mapping Disabled.', 'domain-mapping-updated' ) . '</strong> ' . sprintf( __( 'You must <a href="%1$s">create a network</a> for it to work.', 'domain-mapping-updated' ), 'http://codex.wordpress.org/Create_A_Network' ) . '</p></div>';
-}
+
+
 /**
  * [dm_add_pages description]
  *
@@ -48,30 +42,8 @@ function dm_network_pages() {
 	add_submenu_page( 'settings.php', '0ld Domains', '0ld Domains', 'manage_options', 'dm_domains_admin', 'dm_domains_admin' );
 }
 add_action( 'network_admin_menu', 'dm_network_pages' );
-/**
- * Default Messages for the users Domain Mapping management page
- * This can now be replaced by using:
- * remove_action( 'dm_echo_updated_msg','dm_echo_default_updated_msg' );
- * add_action( 'dm_echo_updated_msg','my_custom_updated_msg_function' );
- **/
-function dm_echo_default_updated_msg() {
-	switch ( $_GET['updated'] ) {
-		case 'add':
-			$msg = __( 'New domain added.', 'domain-mapping-updated' );
-			break;
-		case 'exists':
-			$msg = __( 'New domain already exists.', 'domain-mapping-updated' );
-			break;
-		case 'primary':
-			$msg = __( 'New primary domain.', 'domain-mapping-updated' );
-			break;
-		case 'del':
-			$msg = __( 'Domain deleted.', 'domain-mapping-updated' );
-			break;
-	}
-	echo "<div class='updated fade'><p>$msg</p></div>";
-}
-add_action( 'dm_echo_updated_msg', 'dm_echo_default_updated_msg' );
+
+
 /**
  * [maybe_create_db description]
  *
@@ -334,10 +306,6 @@ function dm_domain_listing( $rows, $heading = '' ) {
 	}
 }
 
-function primary_domains_disabled_notice() {
-	echo '<p>' . __( '<strong>Warning!</strong> Primary domains are currently disabled.', 'domain-mapping-updated' ) . '</p>';
-}
-
 /**
  * [dm_admin_page description]
  *
@@ -384,14 +352,12 @@ function dm_admin_page_config() {
 
 	general_domain_mapping_settings();
 
-	echo '</div><div class="container-right">';
-
-	something_other();
-
+	// something_other();
 	echo '</div></div>';
 }
 
-function something_other() {
+function general_domain_mapping_settings() {
+	// function something_other() {
 		global $wpdb, $current_site;
 
 	// set up some defaults
@@ -434,6 +400,9 @@ function something_other() {
 			update_site_option( 'dm_no_primary_domain', isset( $_POST['dm_no_primary_domain'] ) ? intval( $_POST['dm_no_primary_domain'] ) : 0 );
 		}
 	}
+
+	echo '<h3>' . __( 'Server Configuration', 'domain-mapping-updated' ) . '</h3>';
+
 	echo '<p>' . __( 'If you use round robin DNS or another load balancing technique with more than one IP, enter each address, separating them by commas.', 'domain-mapping-updated' ) . '</p>';
 	_e( 'Server IP Address: ', 'domain-mapping-updated' );
 	echo "<input type='text' name='ipaddress' value='" . get_site_option( 'dm_ipaddress' ) . "' /><br>";
@@ -442,9 +411,10 @@ function something_other() {
 	echo '<p>' . __( 'If you prefer the use of a CNAME record, you can set the domain here. This domain must be configured with an A record or ANAME pointing at an IP address. Visitors may experience problems if it is a CNAME of another domain.', 'domain-mapping-updated' ) . '</p>';
 	echo '<p>' . __( 'NOTE, this voids the use of any IP address set above', 'domain-mapping-updated' ) . '</p>';
 	_e( 'Server CNAME domain: ', 'domain-mapping-updated' );
-	echo "<input type='text' name='cname' value='" . get_site_option( 'dm_cname' ) . "' /> (" . dm_idn_warning() . ')<br>';
-}
-function general_domain_mapping_settings() {
+	echo "<input type='text' name='cname' value='" . get_site_option( 'dm_cname' ) . "' /> <br>( " . dm_idn_warning() . ')<br>';
+
+	echo '</div><div class="container-right">';
+
 	echo '<h3>' . __( 'Domain Options', 'domain-mapping-updated' ) . '</h3>';
 	echo "<ol><li><input type='checkbox' name='dm_remote_login' value='1' ";
 	echo get_site_option( 'dm_remote_login' ) == 1 ? "checked='checked'" : '';
@@ -574,63 +544,6 @@ if ( isset( $_GET['page'] ) && $_GET['page'] == 'domainmapping' ) {
 	add_action( 'admin_init', 'dm_handle_actions' );
 }
 
-/**
- * [dm_sunrise_warning description]
- *
- * @param  boolean $die [description]
- * @return [type]       [description]
- */
-function dm_sunrise_warning( $die = true ) {
-	if ( ! file_exists( WP_CONTENT_DIR . '/sunrise.php' ) ) {
-		if ( ! $die ) {
-			return true;
-		}
-
-		if ( dm_site_admin() ) {
-			wp_die( sprintf( __( 'Please copy sunrise.php to %1\$s/sunrise.php and ensure the SUNRISE definition is in %2\$swp-config.php', 'domain-mapping-updated' ), WP_CONTENT_DIR, ABSPATH ) );
-		} else {
-			wp_die( __( 'This plugin has not been configured correctly yet.', 'domain-mapping-updated' ) );
-		}
-	} elseif ( ! defined( 'SUNRISE' ) ) {
-		if ( ! $die ) {
-			return true;
-		}
-
-		if ( dm_site_admin() ) {
-			wp_die( sprintf( __( "Please uncomment the line <em>define( 'SUNRISE', 'on' );</em> or add it to your %swp-config.php", 'domain-mapping-updated' ), ABSPATH ) );
-		} else {
-			wp_die( __( 'This plugin has not been configured correctly yet.', 'domain-mapping-updated' ) );
-		}
-	} elseif ( ! defined( 'SUNRISE_LOADED' ) ) {
-		if ( ! $die ) {
-			return true;
-		}
-
-		if ( dm_site_admin() ) {
-			wp_die( sprintf( __( "Please edit your %swp-config.php and move the line <em>define( 'SUNRISE', 'on' );</em> above the last require_once() in that file or make sure you updated sunrise.php.", 'domain-mapping-updated' ), ABSPATH ) );
-		} else {
-			wp_die( __( 'This plugin has not been configured correctly yet.', 'domain-mapping-updated' ) );
-		}
-	}
-	return false;
-}
-
-/**
- * [install_in_root_warning description]
- *
- * @return [type] [description]
- */
-function install_in_root_warning() {
-	global $wpdb, $current_site;
-
-	$screen = get_current_screen();
-
-	echo '<pre>';
-	// print_r( $screen );
-	echo '</pre>';
-
-	wp_die( sprintf( __( '<h3 style="color: salmon; line-height:2;padding:2rem 4rem;"><strong>Warning!</strong> This plugin will only work if WordPress is installed in the root directory of your webserver. It is currently installed in &#8217;%s&#8217;.</h3>', 'domain-mapping-updated' ), $current_site->path ) );
-}
 /**
  * [dm_manage_page description]
  *
@@ -1190,14 +1103,5 @@ function dm_site_admin() {
 		return true;
 	}
 }
-/**
- * [dm_idn_warning description]
- *
- * @return [type] [description]
- */
-function dm_idn_warning() {
-	return sprintf( __( 'International Domain Names should be in <a href="%s">punycode</a> format.', 'domain-mapping-updated' ), 'http://api.webnic.cc/idnconversion.html' );
-}
 
-// RMURPHY modification
-// require_once 'domain-mapping-extras.php';
+include( 'domain-mapping-notices.php' );
