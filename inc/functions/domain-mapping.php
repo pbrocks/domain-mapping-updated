@@ -121,7 +121,7 @@ function maybe_create_db() {
 function temp_enqueue_style() {
 	?>
 <style type="text/css">
-	#wpcontent {
+	#wpwrap {
 		background-color: aliceblue;
 	}
 	.container-full, .container-inner {
@@ -131,14 +131,10 @@ function temp_enqueue_style() {
 		width: 50%;
 		float: left;
 	}
-	#wpbody-content > div.container-full > div.container-inner > table {
-		width: 95%;
-	}
 	.container-inner {
 		border: 1px solid salmon;
 		clear:both;
 		padding: 1rem;
-		margin-top: 3rem;
 		text-align: center;
 		width: 95%;
 	}
@@ -160,13 +156,13 @@ function dm_domains_admin() {
 
 	dm_sunrise_warning();
 
-	if ( $current_site->path != '/' ) {
+	if ( '/' !== $current_site->path ) {
 		wp_die( sprintf( __( '<strong>Warning!</strong> This plugin will only work if WordPress is installed in the root directory of your webserver. It is currently installed in &#8217;%s&#8217;.', 'domain-mapping-updated' ), $current_site->path ) );
 	}
 
 	temp_enqueue_style();
 
-	echo '<h2>' . __( '0ld Domain Mapping: Domains', 'domain-mapping-updated' ) . '</h2>';
+	echo '<h2>' . __( '0ld Adding/Editing Domains', 'domain-mapping-updated' ) . '</h2>';
 	if ( ! empty( $_POST['action'] ) ) {
 		check_admin_referer( 'domain_mapping' );
 		$domain = strtolower( $_POST['domain'] );
@@ -285,7 +281,7 @@ function dm_edit_domain( $row = false ) {
 	echo '<tr><th>' . __( 'Primary', 'domain-mapping-updated' ) . "</th><td><input type='checkbox' name='active' value='1' ";
 	echo $row->active == 1 ? 'checked=1 ' : ' ';
 	echo "/></td></tr>\n";
-	if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
+	if ( 1 === get_site_option( 'dm_no_primary_domain' ) ) {
 		echo "<tr><td colspan='2'>" . __( '<strong>Warning!</strong> Primary domains are currently disabled.', 'domain-mapping-updated' ) . '</td></tr>';
 	}
 	echo '</table>';
@@ -326,11 +322,16 @@ function dm_domain_listing( $rows, $heading = '' ) {
 			echo '</td></tr>';
 		}
 		echo '</table>';
-		if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
-			echo '<p>' . __( '<strong>Warning!</strong> Primary domains are currently disabled.', 'domain-mapping-updated' ) . '</p>';
+		if ( 1 === get_site_option( 'dm_no_primary_domain' ) ) {
+			primary_domains_disabled_notice();
 		}
 	}
 }
+
+function primary_domains_disabled_notice() {
+	echo '<p>' . __( '<strong>Warning!</strong> Primary domains are currently disabled.', 'domain-mapping-updated' ) . '</p>';
+}
+
 /**
  * [dm_admin_page description]
  *
@@ -399,10 +400,31 @@ function dm_admin_page() {
  * @return [type] [description]
  */
 function dm_admin_page_config() {
-	echo '<h3>' . __( '0ld Domain Mapping Configuration', 'domain-mapping-updated' ) . '</h3>';
+	echo '<h2>' . __( '0ld Configuring Domain Mapping', 'domain-mapping-updated' ) . '</h2>';
+
+	temp_enqueue_style();
+
+	echo '<div class="container-full"><div class="container-inner">';
+
+	echo '<h3>' . __( 'Domain Mapping Configuration', 'domain-mapping-updated' ) . '</h3>';
+
 	echo '<form method="POST">';
 	echo '<input type="hidden" name="action" value="update" />';
 	echo '<p>' . __( "As a super admin on this network you can set the IP address users need to point their DNS A records at <em>or</em> the domain to point CNAME record at. If you don't know what the IP address is, ping this blog to get it.", 'domain-mapping-updated' ) . '</p>';
+	echo '<p>' . __( 'The information you enter here will be shown to your users so they can configure their DNS correctly. It is for informational purposes only', 'domain-mapping-updated' ) . '</p>';
+
+	echo '</div><div class="container-left">';
+
+	general_domain_mapping_settings();
+
+	echo '</div><div class="container-right">';
+
+	something_other();
+
+	echo '</div></div>';
+}
+
+function something_other() {
 	echo '<p>' . __( 'If you use round robin DNS or another load balancing technique with more than one IP, enter each address, separating them by commas.', 'domain-mapping-updated' ) . '</p>';
 	_e( 'Server IP Address: ', 'domain-mapping-updated' );
 	echo "<input type='text' name='ipaddress' value='" . get_site_option( 'dm_ipaddress' ) . "' /><br>";
@@ -412,8 +434,8 @@ function dm_admin_page_config() {
 	echo '<p>' . __( 'NOTE, this voids the use of any IP address set above', 'domain-mapping-updated' ) . '</p>';
 	_e( 'Server CNAME domain: ', 'domain-mapping-updated' );
 	echo "<input type='text' name='cname' value='" . get_site_option( 'dm_cname' ) . "' /> (" . dm_idn_warning() . ')<br>';
-	echo '<p>' . __( 'The information you enter here will be shown to your users so they can configure their DNS correctly. It is for informational purposes only', 'domain-mapping-updated' ) . '</p>';
-
+}
+function general_domain_mapping_settings() {
 	echo '<h3>' . __( 'Domain Options', 'domain-mapping-updated' ) . '</h3>';
 	echo "<ol><li><input type='checkbox' name='dm_remote_login' value='1' ";
 	echo get_site_option( 'dm_remote_login' ) == 1 ? "checked='checked'" : '';
@@ -741,7 +763,7 @@ function domain_mapping_siteurl( $setting ) {
 					$wpdb->prepare( 'SELECT domain FROM %s WHERE blog_id = %d AND active = 1 LIMIT 1', $wpdb->dmtable, $wpdb->blogid )
 				);
 			}
-						// RMURPHY End Update
+			// RMURPHY End Update
 			if ( null == $domain ) {
 				$return_url[ $wpdb->blogid ] = untrailingslashit( get_original_url( 'siteurl' ) );
 				return $return_url[ $wpdb->blogid ];
