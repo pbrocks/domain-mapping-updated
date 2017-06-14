@@ -390,7 +390,15 @@ function dm_admin_page() {
 			update_site_option( 'dm_no_primary_domain', isset( $_POST['dm_no_primary_domain'] ) ? intval( $_POST['dm_no_primary_domain'] ) : 0 );
 		}
 	}
+	dm_admin_page_config();
+}
 
+/**
+ * [dm_admin_page_config description]
+ *
+ * @return [type] [description]
+ */
+function dm_admin_page_config() {
 	echo '<h3>' . __( '0ld Domain Mapping Configuration', 'domain-mapping-updated' ) . '</h3>';
 	echo '<form method="POST">';
 	echo '<input type="hidden" name="action" value="update" />';

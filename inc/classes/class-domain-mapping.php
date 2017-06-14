@@ -28,7 +28,7 @@ class Domain_Mapping {
 	 * @return void
 	 */
 	public static function init() {
-		add_action( 'admin_head', array( __CLASS__, 'echo_current_subsite' ) );
+		// add_action( 'admin_head', array( __CLASS__, 'echo_current_subsite' ) );
 		add_action( 'admin_menu', array( __CLASS__, 'domain_mapping_menu' ) );
 		add_action( 'network_admin_menu', array( __CLASS__, 'domain_mapping_menu' ) );
 		add_action( 'network_admin_menu', array( __CLASS__, 'domain_mapping_network_menus' ) );
