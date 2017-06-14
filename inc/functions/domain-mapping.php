@@ -157,12 +157,17 @@ function dm_domains_admin() {
 	dm_sunrise_warning();
 
 	if ( '/' !== $current_site->path ) {
-		wp_die( sprintf( __( '<strong>Warning!</strong> This plugin will only work if WordPress is installed in the root directory of your webserver. It is currently installed in &#8217;%s&#8217;.', 'domain-mapping-updated' ), $current_site->path ) );
+		install_in_root_warning();
 	}
 
 	temp_enqueue_style();
 
 	echo '<h2>' . __( '0ld Adding/Editing Domains', 'domain-mapping-updated' ) . '</h2>';
+
+	if ( '1' === get_site_option( 'dm_no_primary_domain' ) ) {
+		echo "<tr><td colspan='2'>" . __( '<strong>Warning!</strong> Primary domains are currently disabled.', 'domain-mapping-updated' ) . '</td></tr>';
+	}
+
 	if ( ! empty( $_POST['action'] ) ) {
 		check_admin_referer( 'domain_mapping' );
 		$domain = strtolower( $_POST['domain'] );
@@ -181,6 +186,7 @@ function dm_domains_admin() {
 					null == $wpdb->get_var( $wpdb->prepare( "SELECT domain FROM {$wpdb->dmtable} WHERE blog_id != %d AND domain = %s", $_POST['blog_id'], $domain ) )
 				) {
 					if ( '' === $_POST['orig_domain'] ) {
+						// Notice: Undefined index: active in /Applications/MAMP/htdocs/second-site/wp-content/plugins/domain-mapping-updated/inc/functions/domain-mapping.php on line 184
 						$wpdb->query( $wpdb->prepare( "INSERT INTO {$wpdb->dmtable} ( `blog_id`, `domain`, `active` ) VALUES ( %d, %s, %d )", $_POST['blog_id'], $domain, $_POST['active'] ) );
 						echo '<p><strong>' . __( 'Domain Add', 'domain-mapping-updated' ) . '</strong></p>';
 					} elseif ( $_POST['orig_domain'] == '' ) {
@@ -200,7 +206,7 @@ function dm_domains_admin() {
 				$rows = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->dmtable} WHERE domain LIKE %s", $domain ) );
 				dm_domain_listing( $rows, sprintf( __( 'Searching for %s', 'domain-mapping-updated' ), esc_html( $domain ) ) );
 			break;
-		}
+		}// End switch().
 		if ( $_POST['action'] == 'update' ) {
 			if ( preg_match( '|^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$|', $_POST['ipaddress'] ) ) {
 				update_site_option( 'dm_ipaddress', $_POST['ipaddress'] );
@@ -344,12 +350,49 @@ function dm_admin_page() {
 		return false;
 	}
 
+	if ( '/' !== $current_site->path ) {
+		install_in_root_warning();
+	}
+
 	dm_sunrise_warning();
+
 	maybe_create_db();
 
-	if ( '/' !== $current_site->path ) {
-		wp_die( sprintf( __( '<strong>Warning!</strong> This plugin will only work if WordPress is installed in the root directory of your webserver. It is currently installed in &#8217;%s&#8217;.', 'domain-mapping-updated' ), $current_site->path ) );
-	}
+	dm_admin_page_config();
+}
+
+/**
+ * [dm_admin_page_config description]
+ *
+ * @return [type] [description]
+ */
+function dm_admin_page_config() {
+	echo '<h2>' . __( '0ld Configuring Domain Mapping', 'domain-mapping-updated' ) . '</h2>';
+
+	temp_enqueue_style();
+
+	echo '<div class="container-full"><div class="container-inner">';
+
+	echo '<h3>' . __( 'Domain Mapping Configuration', 'domain-mapping-updated' ) . '</h3>';
+
+	echo '<form method="POST">';
+	echo '<input type="hidden" name="action" value="update" />';
+	echo '<p>' . __( "As a super admin on this network you can set the IP address users need to point their DNS A records at <em>or</em> the domain to point CNAME record at. If you don't know what the IP address is, ping this blog to get it.", 'domain-mapping-updated' ) . '</p>';
+	echo '<p>' . __( 'The information you enter here will be shown to your users so they can configure their DNS correctly. It is for informational purposes only', 'domain-mapping-updated' ) . '</p>';
+
+	echo '</div><div class="container-left">';
+
+	general_domain_mapping_settings();
+
+	echo '</div><div class="container-right">';
+
+	something_other();
+
+	echo '</div></div>';
+}
+
+function something_other() {
+		global $wpdb, $current_site;
 
 	// set up some defaults
 	if ( 'NA' === get_site_option( 'dm_remote_login', 'NA' ) ) {
@@ -391,40 +434,6 @@ function dm_admin_page() {
 			update_site_option( 'dm_no_primary_domain', isset( $_POST['dm_no_primary_domain'] ) ? intval( $_POST['dm_no_primary_domain'] ) : 0 );
 		}
 	}
-	dm_admin_page_config();
-}
-
-/**
- * [dm_admin_page_config description]
- *
- * @return [type] [description]
- */
-function dm_admin_page_config() {
-	echo '<h2>' . __( '0ld Configuring Domain Mapping', 'domain-mapping-updated' ) . '</h2>';
-
-	temp_enqueue_style();
-
-	echo '<div class="container-full"><div class="container-inner">';
-
-	echo '<h3>' . __( 'Domain Mapping Configuration', 'domain-mapping-updated' ) . '</h3>';
-
-	echo '<form method="POST">';
-	echo '<input type="hidden" name="action" value="update" />';
-	echo '<p>' . __( "As a super admin on this network you can set the IP address users need to point their DNS A records at <em>or</em> the domain to point CNAME record at. If you don't know what the IP address is, ping this blog to get it.", 'domain-mapping-updated' ) . '</p>';
-	echo '<p>' . __( 'The information you enter here will be shown to your users so they can configure their DNS correctly. It is for informational purposes only', 'domain-mapping-updated' ) . '</p>';
-
-	echo '</div><div class="container-left">';
-
-	general_domain_mapping_settings();
-
-	echo '</div><div class="container-right">';
-
-	something_other();
-
-	echo '</div></div>';
-}
-
-function something_other() {
 	echo '<p>' . __( 'If you use round robin DNS or another load balancing technique with more than one IP, enter each address, separating them by commas.', 'domain-mapping-updated' ) . '</p>';
 	_e( 'Server IP Address: ', 'domain-mapping-updated' );
 	echo "<input type='text' name='ipaddress' value='" . get_site_option( 'dm_ipaddress' ) . "' /><br>";
@@ -564,6 +573,7 @@ function dm_handle_actions() {
 if ( isset( $_GET['page'] ) && $_GET['page'] == 'domainmapping' ) {
 	add_action( 'admin_init', 'dm_handle_actions' );
 }
+
 /**
  * [dm_sunrise_warning description]
  *
@@ -605,6 +615,22 @@ function dm_sunrise_warning( $die = true ) {
 	return false;
 }
 
+/**
+ * [install_in_root_warning description]
+ *
+ * @return [type] [description]
+ */
+function install_in_root_warning() {
+	global $wpdb, $current_site;
+
+	$screen = get_current_screen();
+
+	echo '<pre>';
+	// print_r( $screen );
+	echo '</pre>';
+
+	wp_die( sprintf( __( '<h3 style="color: salmon; line-height:2;padding:2rem 4rem;"><strong>Warning!</strong> This plugin will only work if WordPress is installed in the root directory of your webserver. It is currently installed in &#8217;%s&#8217;.</h3>', 'domain-mapping-updated' ), $current_site->path ) );
+}
 /**
  * [dm_manage_page description]
  *
