@@ -36,7 +36,6 @@ function dm_add_pages() {
 	if ( get_site_option( 'dm_user_settings' ) && $current_site->blog_id != $wpdb->blogid && ! dm_sunrise_warning( false ) ) {
 		add_management_page( __( 'Domain Mapping', 'domain-mapping-updated' ), __( 'Domain Mapping', 'domain-mapping-updated' ), 'manage_options', 'domainmapping', 'dm_manage_page' );
 	}
-
 }
 add_action( 'admin_menu', 'dm_add_pages' );
 /**
@@ -72,7 +71,7 @@ function dm_echo_default_updated_msg() {
 	}
 	echo "<div class='updated fade'><p>$msg</p></div>";
 }
-add_action( 'dm_echo_updated_msg','dm_echo_default_updated_msg' );
+add_action( 'dm_echo_updated_msg', 'dm_echo_default_updated_msg' );
 /**
  * [maybe_create_db description]
  *
@@ -88,31 +87,31 @@ function maybe_create_db() {
 	if ( dm_site_admin() ) {
 		$created = 0;
 		if ( $wpdb->get_var( "SHOW TABLES LIKE '{$wpdb->dmtable}'" ) != $wpdb->dmtable ) {
-			$wpdb->query( "CREATE TABLE IF NOT EXISTS `{$wpdb->dmtable}` (
+			$wpdb->query("CREATE TABLE IF NOT EXISTS `{$wpdb->dmtable}` (
 				`id` bigint(20) NOT NULL auto_increment,
 				`blog_id` bigint(20) NOT NULL,
 				`domain` varchar(255) NOT NULL,
 				`active` tinyint(4) default '1',
 				PRIMARY KEY  (`id`),
 				KEY `blog_id` (`blog_id`,`domain`,`active`)
-			);" );
+			);");
 			$created = 1;
 		}
 		if ( $wpdb->get_var( "SHOW TABLES LIKE '{$wpdb->dmtablelogins}'" ) != $wpdb->dmtablelogins ) {
-			$wpdb->query( "CREATE TABLE IF NOT EXISTS `{$wpdb->dmtablelogins}` (
+			$wpdb->query("CREATE TABLE IF NOT EXISTS `{$wpdb->dmtablelogins}` (
 				`id` varchar(32) NOT NULL,
 				`user_id` bigint(20) NOT NULL,
 				`blog_id` bigint(20) NOT NULL,
 				`t` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
 				PRIMARY KEY  (`id`)
-			);" );
+			);");
 			$created = 1;
 		}
 		if ( $created ) {
 			?> <div id="message" class="updated fade"><p><strong><?php _e( 'Domain mapping database table created.', 'domain-mapping-updated' ) ?></strong></p></div> <?php
+
 		}
 	}
-
 }
 /**
  * [temp_enqueue_style description]
@@ -120,9 +119,9 @@ function maybe_create_db() {
  * @return [type] [description]
  */
 function temp_enqueue_style() {
-?>
+	?>
 <style type="text/css">
-	#wpbody {
+	#wpcontent {
 		background-color: aliceblue;
 	}
 	.container-full, .container-inner {
@@ -132,8 +131,20 @@ function temp_enqueue_style() {
 		width: 50%;
 		float: left;
 	}
+	#wpbody-content > div.container-full > div.container-inner > table {
+		width: 95%;
+	}
+	.container-inner {
+		border: 1px solid salmon;
+		clear:both;
+		padding: 1rem;
+		margin-top: 3rem;
+		text-align: center;
+		width: 95%;
+	}
 </style>
 <?php
+
 }
 // add_action( 'wp_head', 'temp_enqueue_style' );
 /**
@@ -201,7 +212,8 @@ function dm_domains_admin() {
 
 			if ( ! preg_match( '/(--|\.\.)/', $_POST['cname'] ) && preg_match( '|^([a-zA-Z0-9-\.])+$|', $_POST['cname'] ) ) {
 				update_site_option( 'dm_cname', stripslashes( $_POST['cname'] ) );
-			} else { update_site_option( 'dm_cname', '' );
+			} else {
+				update_site_option( 'dm_cname', '' );
 			}
 
 			update_site_option( 'dm_301_redirect', intval( $_POST['permanent_redirect'] ) );
@@ -235,7 +247,6 @@ function new_search_listed_domains() {
 	echo " <input type='text' name='domain' value='' /></p>";
 	echo "<p><input type='submit' class='button-secondary' value='" . __( 'Search', 'domain-mapping-updated' ) . "' /></p>";
 	echo '</form><br>';
-
 }
 /**
  * [new_list_mapped_domains description]
@@ -302,11 +313,11 @@ function dm_domain_listing( $rows, $heading = '' ) {
 		}
 		echo '<table class="widefat" cellspacing="0"><thead><tr><th>' . __( 'Site ID', 'domain-mapping-updated' ) . '</th><th>' . __( 'Domain', 'domain-mapping-updated' ) . '</th><th>' . __( 'Primary', 'domain-mapping-updated' ) . '</th><th>' . __( 'Edit', 'domain-mapping-updated' ) . '</th><th>' . __( 'Delete', 'domain-mapping-updated' ) . '</th></tr></thead><tbody>';
 		foreach ( $rows as $row ) {
-			echo "<tr><td><a href='" . add_query_arg( array(
+			echo "<tr><td><a href='" . add_query_arg(array(
 				'action' => 'editblog',
 				'id' => $row->blog_id,
-			), $edit_url ) . "'>{$row->blog_id}</a></td><td><a href='http://{$row->domain}/'>{$row->domain}</a></td><td>";
-			echo $row->active == 1 ? __( 'Yes',  'domain-mapping-updated' ) : __( 'No',  'domain-mapping-updated' );
+			), $edit_url) . "'>{$row->blog_id}</a></td><td><a href='http://{$row->domain}/'>{$row->domain}</a></td><td>";
+			echo $row->active == 1 ? __( 'Yes', 'domain-mapping-updated' ) : __( 'No', 'domain-mapping-updated' );
 			echo "</td><td><form method='POST'><input type='hidden' name='action' value='edit' /><input type='hidden' name='domain' value='{$row->domain}' />";
 			wp_nonce_field( 'domain_mapping' );
 			echo "<input type='submit' class='button-secondary' value='" . __( 'Edit', 'domain-mapping-updated' ) . "' /></form></td><td><form method='POST'><input type='hidden' name='action' value='del' /><input type='hidden' name='domain' value='{$row->domain}' />";
@@ -356,7 +367,7 @@ function dm_admin_page() {
 			$ipok = true;
 			$ipaddresses = explode( ',', $_POST['ipaddress'] );
 			foreach ( $ipaddresses as $address ) {
-				if ( ( $ip = trim( $address ) ) && ! preg_match( '|^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$|', $ip ) ) {
+				if ( ($ip = trim( $address )) && ! preg_match( '|^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$|', $ip ) ) {
 					$ipok = false;
 					break;
 				}
@@ -370,7 +381,8 @@ function dm_admin_page() {
 			update_site_option( 'dm_remote_login', intval( $_POST['dm_remote_login'] ) );
 			if ( ! preg_match( '/(--|\.\.)/', $_POST['cname'] ) && preg_match( '|^([a-zA-Z0-9-\.])+$|', $_POST['cname'] ) ) {
 				update_site_option( 'dm_cname', stripslashes( $_POST['cname'] ) );
-			} else { update_site_option( 'dm_cname', '' );
+			} else {
+				update_site_option( 'dm_cname', '' );
 			}
 			update_site_option( 'dm_301_redirect', isset( $_POST['permanent_redirect'] ) ? intval( $_POST['permanent_redirect'] ) : 0 );
 			update_site_option( 'dm_redirect_admin', isset( $_POST['always_redirect_admin'] ) ? intval( $_POST['always_redirect_admin'] ) : 0 );
@@ -437,7 +449,6 @@ function get_this_plugin_option( $option_name ) {
  * @return [type] [description]
  */
 function update_this_plugin_option( $option_name, $option_value ) {
-
 	if ( true === PLUGIN_NETWORK_ACTIVATED ) {
 		// Update network site option
 		return update_site_option( $option_name, $option_value );
@@ -453,7 +464,6 @@ function update_this_plugin_option( $option_name, $option_value ) {
  * @return [type] [description]
  */
 function get_domain_mapping_network_option() {
-
 }
 
 /**
@@ -463,9 +473,9 @@ function get_domain_mapping_network_option() {
  */
 function dm_handle_actions() {
 	global $wpdb, $parent_file;
-	$url = add_query_arg( array(
+	$url = add_query_arg(array(
 		'page' => 'domainmapping',
-	), admin_url( $parent_file ) );
+	), admin_url( $parent_file ));
 	if ( ! empty( $_POST['action'] ) ) {
 		// $domain = $wpdb->escape( $_POST['domain'] );
 		$domain = esc_sql( $_POST['domain'] );
@@ -482,14 +492,14 @@ function dm_handle_actions() {
 						$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->dmtable} SET active = 0 WHERE blog_id = %d", $wpdb->blogid ) );
 					}
 					$wpdb->query( $wpdb->prepare( "INSERT INTO {$wpdb->dmtable} ( `id` , `blog_id` , `domain` , `active` ) VALUES ( NULL, %d, %s, %d )", $wpdb->blogid, $domain, $_POST['primary'] ) );
-					wp_redirect( add_query_arg( array(
+					wp_redirect(add_query_arg(array(
 						'updated' => 'add',
-					), $url ) );
+					), $url));
 					exit;
 				} else {
-					wp_redirect( add_query_arg( array(
+					wp_redirect(add_query_arg(array(
 						'updated' => 'exists',
-					), $url ) );
+					), $url));
 					exit;
 				}
 			break;
@@ -500,9 +510,9 @@ function dm_handle_actions() {
 				if ( $domain != $orig_url['host'] ) {
 					$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->dmtable} SET active = 1 WHERE domain = %s", $domain ) );
 				}
-				wp_redirect( add_query_arg( array(
+				wp_redirect(add_query_arg(array(
 					'updated' => 'primary',
-				), $url ) );
+				), $url));
 				exit;
 			break;
 		}
@@ -515,12 +525,11 @@ function dm_handle_actions() {
 		check_admin_referer( 'delete' . $_GET['domain'] );
 		do_action( 'dm_handle_actions_del', $domain );
 		$wpdb->query( "DELETE FROM {$wpdb->dmtable} WHERE domain = '$domain'" );
-		wp_redirect( add_query_arg( array(
+		wp_redirect(add_query_arg(array(
 			'updated' => 'del',
-		), $url ) );
+		), $url));
 		exit;
 	}// End if().
-
 }
 if ( isset( $_GET['page'] ) && $_GET['page'] == 'domainmapping' ) {
 	add_action( 'admin_init', 'dm_handle_actions' );
@@ -580,6 +589,8 @@ function dm_manage_page() {
 
 	dm_sunrise_warning();
 
+	temp_enqueue_style();
+
 	echo "<div class='wrap'><h2>" . __( 'Domain Mapping', 'domain-mapping-updated' ) . '</h2>';
 
 	if ( false == get_site_option( 'dm_ipaddress' ) && false == get_site_option( 'dm_cname' ) ) {
@@ -601,14 +612,17 @@ function dm_manage_page() {
 			'path' => $orig_url['path'],
 			'active' => 0,
 		);
+
+		echo '<div class="container-full"><div class="container-left">';
+
 		echo '<h3>' . __( 'Active domains on this blog', 'domain-mapping-updated' ) . '</h3>';
 		echo '<form method="POST">';
 		echo '<table><tr><th>' . __( 'Primary', 'domain-mapping-updated' ) . '</th><th>' . __( 'Domain', 'domain-mapping-updated' ) . '</th><th>' . __( 'Delete', 'domain-mapping-updated' ) . "</th></tr>\n";
 		$primary_found = 0;
-		$del_url = add_query_arg( array(
+		$del_url = add_query_arg(array(
 			'page' => 'domainmapping',
 			'action' => 'delete',
-		), admin_url( $parent_file ) );
+		), admin_url( $parent_file ));
 		foreach ( $domains as $details ) {
 			$details['path'] = array_key_exists( 'path', $details ) ? $details['path'] : '';
 			if ( 0 == $primary_found && $details['domain'] == $orig_url['host'] ) {
@@ -623,25 +637,27 @@ function dm_manage_page() {
 			$url = "{$protocol}{$details[ 'domain' ]}{$details[ 'path' ]}";
 			echo "</td><td><a href='$url'>$url</a></td><td style='text-align: center'>";
 			if ( $details['domain'] != $orig_url['host'] && $details['active'] != 1 ) {
-				echo "<a href='" . wp_nonce_url( add_query_arg( array(
+				echo "<a href='" . wp_nonce_url(add_query_arg(array(
 					'domain' => $details['domain'],
-				), $del_url ), 'delete' . $details['domain'] ) . "'>Del</a>";
+				), $del_url), 'delete' . $details['domain']) . "'>Del</a>";
 			}
 			echo '</td></tr>';
 			if ( 0 == $primary_found ) {
 				$primary_found = $details['active'];
 			}
-		}
-		?></table><?php
+		} ?></table><?php
 		echo '<input type="hidden" name="action" value="primary" />';
 		echo "<p><input type='submit' class='button-primary' value='" . __( 'Set Primary Domain', 'domain-mapping-updated' ) . "' /></p>";
 		wp_nonce_field( 'domain_mapping' );
 		echo '</form>';
+
 		echo '<p>' . __( '* The primary domain cannot be deleted.', 'domain-mapping-updated' ) . '</p>';
 if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
 	echo __( '<strong>Warning!</strong> Primary domains are currently disabled.', 'domain-mapping-updated' );
 }
 	}// End if().
+		echo '</div><div class="container-right">';
+
 	echo '<h3>' . __( 'Add new domain', 'domain-mapping-updated' ) . '</h3>';
 	echo '<form method="POST">';
 	echo '<input type="hidden" name="action" value="add" />';
@@ -650,6 +666,8 @@ if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
 	echo "<input type='checkbox' name='primary' value='1' /> " . __( 'Primary domain for this blog', 'domain-mapping-updated' ) . '</p>';
 	echo "<p><input type='submit' class='button-secondary' value='" . __( 'Add', 'domain-mapping-updated' ) . "' /></p>";
 	echo '</form><br>';
+
+	echo '</div><div class="container-inner">';
 
 	if ( get_site_option( 'dm_cname' ) ) {
 		$dm_cname = get_site_option( 'dm_cname' );
@@ -664,7 +682,9 @@ if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
 			echo '<p>' . sprintf( __( 'If you want to redirect a domain you will need to add a DNS "A" record pointing at the IP address of this server: <strong>%s</strong>', 'domain-mapping-updated' ), $dm_ipaddress ) . '</p>';
 		}
 	}
+
 	echo '<p>' . sprintf( __( '<strong>Note:</strong> %s', 'domain-mapping-updated' ), dm_idn_warning() ) . '</p>';
+	echo '</div></div>';
 	echo '</div>';
 }
 /**
@@ -685,7 +705,7 @@ function domain_mapping_siteurl( $setting ) {
 		$s = $wpdb->suppress_errors();
 
 		if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
-						// RMURPHY - Update to allow hosting both sub-domains and sub-directories
+			// RMURPHY - Update to allow hosting both sub-domains and sub-directories
 						//
 						global $override_domain;
 			if ( isset( $override_domain ) ) {
@@ -702,7 +722,7 @@ function domain_mapping_siteurl( $setting ) {
 				return $return_url[ $wpdb->blogid ];
 			}
 		} else {
-						// RMURPHY - Update to allow hosting both sub-domains and sub-directories
+			// RMURPHY - Update to allow hosting both sub-domains and sub-directories
 						//
 						global $override_domain;
 			if ( isset( $override_domain ) ) {
@@ -791,7 +811,7 @@ function domain_mapping_adminurl( $url, $path, $blog_id = 0 ) {
 		$url = get_original_url( 'siteurl', $blog_id ) . substr( $url, $index );
 
 		// make sure admin_url is ssl if current page is ssl, or admin ssl is forced
-		if ( ( is_ssl() || force_ssl_admin() ) && 0 === strpos( $url, 'http://' ) ) {
+		if ( (is_ssl() || force_ssl_admin()) && 0 === strpos( $url, 'http://' ) ) {
 			$url = 'https://' . substr( $url, 7 );
 		}
 	}
@@ -942,7 +962,7 @@ function redirect_to_mapped_domain() {
 	$url = domain_mapping_siteurl( false );
 	if ( $url && $url != untrailingslashit( $protocol . $current_blog->domain . $current_blog->path ) ) {
 		$redirect = get_site_option( 'dm_301_redirect' ) ? '301' : '302';
-		if ( ( defined( 'VHOST' ) && constant( 'VHOST' ) != 'yes' ) || ( defined( 'SUBDOMAIN_INSTALL' ) && constant( 'SUBDOMAIN_INSTALL' ) == false ) ) {
+		if ( (defined( 'VHOST' ) && constant( 'VHOST' ) != 'yes') || (defined( 'SUBDOMAIN_INSTALL' ) && constant( 'SUBDOMAIN_INSTALL' ) == false) ) {
 			$_SERVER['REQUEST_URI'] = str_replace( $current_blog->path, '/', $_SERVER['REQUEST_URI'] );
 		}
 		header( "Location: {$url}{$_SERVER[ 'REQUEST_URI' ]}", true, $redirect );
@@ -985,19 +1005,19 @@ function remote_login_js() {
 			}
 			$key = md5( time() . mt_rand() );
 			$wpdb->query( $wpdb->prepare( "INSERT INTO {$wpdb->dmtablelogins} ( `id`, `user_id`, `blog_id`, `t` ) VALUES( %s, %d, %d, NOW() )", $key, $current_user->ID, $_GET['blogid'] ) );
-			$url = add_query_arg( array(
+			$url = add_query_arg(array(
 				'action' => 'login',
 				'dm' => $hash,
 				'k' => $key,
 				't' => mt_rand(),
-			), $_GET['back'] );
+			), $_GET['back']);
 			echo "window.location = '$url'";
 			exit;
 		} elseif ( $_GET['action'] == 'login' ) {
 			if ( $details = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->dmtablelogins} WHERE id = %s AND blog_id = %d", $_GET['k'], $wpdb->blogid ) ) ) {
 				if ( $details->blog_id == $wpdb->blogid ) {
 					$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->dmtablelogins} WHERE id = %s", $_GET['k'] ) );
-					$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->dmtablelogins} WHERE t < %d", ( time() - 120 ) ) ); // remote logins survive for only 2 minutes if not used.
+					$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->dmtablelogins} WHERE t < %d", (time() - 120) ) ); // remote logins survive for only 2 minutes if not used.
 					wp_set_auth_cookie( $details->user_id );
 					wp_redirect( remove_query_arg( array( 'dm', 'action', 'k', 't', $protocol . $current_blog->domain . $_SERVER['REQUEST_URI'] ) ) );
 					exit;

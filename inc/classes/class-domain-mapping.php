@@ -21,6 +21,7 @@ defined( 'ABSPATH' ) || die( 'File cannot be accessed directly' );
  * @deprecated Class deprecated in Release 2.0.0
  */
 class Domain_Mapping {
+
 	/**
 	 * Description
 	 *
@@ -32,7 +33,7 @@ class Domain_Mapping {
 		add_action( 'network_admin_menu', array( __CLASS__, 'domain_mapping_menu' ) );
 		add_action( 'network_admin_menu', array( __CLASS__, 'domain_mapping_network_menus' ) );
 		// add_action( 'admin_menu', array( __CLASS__, 'domain_mapping_subsite_menus' ) );
-		add_action( 'admin_menu', array( __CLASS__, 'diagnositc_submenu_page' ) );
+		// add_action( 'admin_menu', array( __CLASS__, 'diagnositc_submenu_page' ) );
 		// add_action( 'init', array( __CLASS__, 'domain_mapping_filters' ) );
 		add_action( 'manage_sites_custom_column', array( __CLASS__, 'add_column_for_aliases' ), 10, 2 );
 		add_action( 'manage_blogs_custom_column', array( __CLASS__, 'add_column_for_aliases' ), 10, 2 );
@@ -102,7 +103,6 @@ class Domain_Mapping {
 		if ( get_site_option( 'dm_user_settings' ) && $current_site->blog_id != $wpdb->blogid && ! self::dm_sunrise_warning( false ) ) {
 			add_management_page( __( 'Domain Mapping', 'cmpbl-domain-mapping' ), __( 'Domain Mapping', 'cmpbl-domain-mapping' ), 'manage_options', 'domainmapping', array( __CLASS__, 'dm_manage_page' ) );
 		}
-
 	}
 
 	// Default Messages for the users Domain Mapping management page
@@ -144,28 +144,29 @@ class Domain_Mapping {
 		if ( self::dm_site_admin() ) {
 			$created = 0;
 			if ( $wpdb->get_var( "SHOW TABLES LIKE '{$wpdb->dmtable}'" ) != $wpdb->dmtable ) {
-				$wpdb->query( "CREATE TABLE IF NOT EXISTS `{$wpdb->dmtable}` (
+				$wpdb->query("CREATE TABLE IF NOT EXISTS `{$wpdb->dmtable}` (
 					`id` bigint(20) NOT NULL auto_increment,
 					`blog_id` bigint(20) NOT NULL,
 					`domain` varchar(255) NOT NULL,
 					`active` tinyint(4) default '1',
 					PRIMARY KEY  (`id`),
 					KEY `blog_id` (`blog_id`,`domain`,`active`)
-				);" );
+				);");
 				$created = 1;
 			}
 			if ( $wpdb->get_var( "SHOW TABLES LIKE '{$wpdb->dmtablelogins}'" ) != $wpdb->dmtablelogins ) {
-				$wpdb->query( "CREATE TABLE IF NOT EXISTS `{$wpdb->dmtablelogins}` (
+				$wpdb->query("CREATE TABLE IF NOT EXISTS `{$wpdb->dmtablelogins}` (
 					`id` varchar(32) NOT NULL,
 					`user_id` bigint(20) NOT NULL,
 					`blog_id` bigint(20) NOT NULL,
 					`t` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
 					PRIMARY KEY  (`id`)
-				);" );
+				);");
 				$created = 1;
 			}
 			if ( $created ) {
 				?> <div id="message" class="updated fade"><p><strong><?php _e( 'Domain mapping database table created.', 'cmpbl-domain-mapping' ) ?></strong></p></div> <?php
+
 			}
 		}
 	}
@@ -229,7 +230,8 @@ class Domain_Mapping {
 
 				if ( ! preg_match( '/(--|\.\.)/', $_POST['cname'] ) && preg_match( '|^([a-zA-Z0-9-\.])+$|', $_POST['cname'] ) ) {
 					update_site_option( 'dm_cname', stripslashes( $_POST['cname'] ) );
-				} else { update_site_option( 'dm_cname', '' );
+				} else {
+					update_site_option( 'dm_cname', '' );
 				}
 
 				update_site_option( 'dm_301_redirect', intval( $_POST['permanent_redirect'] ) );
@@ -299,11 +301,11 @@ class Domain_Mapping {
 			}
 			echo '<table class="widefat" cellspacing="0"><thead><tr><th>' . __( 'Site ID', 'cmpbl-domain-mapping' ) . '</th><th>' . __( 'Domain', 'cmpbl-domain-mapping' ) . '</th><th>' . __( 'Primary', 'cmpbl-domain-mapping' ) . '</th><th>' . __( 'Edit', 'cmpbl-domain-mapping' ) . '</th><th>' . __( 'Delete', 'cmpbl-domain-mapping' ) . '</th></tr></thead><tbody>';
 			foreach ( $rows as $row ) {
-				echo "<tr><td><a href='" . add_query_arg( array(
+				echo "<tr><td><a href='" . add_query_arg(array(
 					'action' => 'editblog',
 					'id' => $row->blog_id,
-				), $edit_url ) . "'>{$row->blog_id}</a></td><td><a href='http://{$row->domain}/'>{$row->domain}</a></td><td>";
-				echo $row->active == 1 ? __( 'Yes',  'cmpbl-domain-mapping' ) : __( 'No',  'cmpbl-domain-mapping' );
+				), $edit_url) . "'>{$row->blog_id}</a></td><td><a href='http://{$row->domain}/'>{$row->domain}</a></td><td>";
+				echo $row->active == 1 ? __( 'Yes', 'cmpbl-domain-mapping' ) : __( 'No', 'cmpbl-domain-mapping' );
 				echo "</td><td><form method='POST'><input type='hidden' name='action' value='edit' /><input type='hidden' name='domain' value='{$row->domain}' />";
 				wp_nonce_field( 'domain_mapping' );
 				echo "<input type='submit' class='button-secondary' value='" . __( 'Edit', 'cmpbl-domain-mapping' ) . "' /></form></td><td><form method='POST'><input type='hidden' name='action' value='del' /><input type='hidden' name='domain' value='{$row->domain}' />";
@@ -352,7 +354,7 @@ class Domain_Mapping {
 				$ipok = true;
 				$ipaddresses = explode( ',', $_POST['ipaddress'] );
 				foreach ( $ipaddresses as $address ) {
-					if ( ( $ip = trim( $address ) ) && ! preg_match( '|^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$|', $ip ) ) {
+					if ( ($ip = trim( $address )) && ! preg_match( '|^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$|', $ip ) ) {
 						$ipok = false;
 						break;
 					}
@@ -366,7 +368,8 @@ class Domain_Mapping {
 				update_site_option( 'dm_remote_login', intval( $_POST['dm_remote_login'] ) );
 				if ( ! preg_match( '/(--|\.\.)/', $_POST['cname'] ) && preg_match( '|^([a-zA-Z0-9-\.])+$|', $_POST['cname'] ) ) {
 					update_site_option( 'dm_cname', stripslashes( $_POST['cname'] ) );
-				} else { update_site_option( 'dm_cname', '' );
+				} else {
+					update_site_option( 'dm_cname', '' );
 				}
 				update_site_option( 'dm_301_redirect', isset( $_POST['permanent_redirect'] ) ? intval( $_POST['permanent_redirect'] ) : 0 );
 				update_site_option( 'dm_redirect_admin', isset( $_POST['always_redirect_admin'] ) ? intval( $_POST['always_redirect_admin'] ) : 0 );
@@ -417,9 +420,9 @@ class Domain_Mapping {
 	 */
 	public static function dm_handle_actions() {
 		global $wpdb, $parent_file;
-		$url = add_query_arg( array(
+		$url = add_query_arg(array(
 			'page' => 'domainmapping',
-		), admin_url( $parent_file ) );
+		), admin_url( $parent_file ));
 		if ( ! empty( $_POST['action'] ) ) {
 			$domain = esc_sql( $_POST['domain'] );
 			if ( $domain == '' ) {
@@ -435,14 +438,14 @@ class Domain_Mapping {
 							$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->dmtable} SET active = 0 WHERE blog_id = %d", $wpdb->blogid ) );
 						}
 						$wpdb->query( $wpdb->prepare( "INSERT INTO {$wpdb->dmtable} ( `id` , `blog_id` , `domain` , `active` ) VALUES ( NULL, %d, %s, %d )", $wpdb->blogid, $domain, $_POST['primary'] ) );
-						wp_redirect( add_query_arg( array(
+						wp_redirect(add_query_arg(array(
 							'updated' => 'add',
-						), $url ) );
+						), $url));
 						exit;
 					} else {
-						wp_redirect( add_query_arg( array(
+						wp_redirect(add_query_arg(array(
 							'updated' => 'exists',
-						), $url ) );
+						), $url));
 						exit;
 					}
 				break;
@@ -454,9 +457,9 @@ class Domain_Mapping {
 					if ( $domain != $orig_url['host'] ) {
 						$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->dmtable} SET active = 1 WHERE domain = %s", $domain ) );
 					}
-					wp_redirect( add_query_arg( array(
+					wp_redirect(add_query_arg(array(
 						'updated' => 'primary',
-					), $url ) );
+					), $url));
 					exit;
 				break;
 			}
@@ -468,12 +471,11 @@ class Domain_Mapping {
 			check_admin_referer( 'delete' . $_GET['domain'] );
 			do_action( 'dm_handle_actions_del', $domain );
 			$wpdb->query( "DELETE FROM {$wpdb->dmtable} WHERE domain = '$domain'" );
-			wp_redirect( add_query_arg( array(
+			wp_redirect(add_query_arg(array(
 				'updated' => 'del',
-			), $url ) );
+			), $url));
 			exit;
 		}// End if().
-
 	}
 
 
@@ -555,10 +557,10 @@ class Domain_Mapping {
 			echo '<form method="POST">';
 			echo '<table><tr><th>' . __( 'Primary', 'cmpbl-domain-mapping' ) . '</th><th>' . __( 'Domain', 'cmpbl-domain-mapping' ) . '</th><th>' . __( 'Delete', 'cmpbl-domain-mapping' ) . "</th></tr>\n";
 			$primary_found = 0;
-			$del_url = add_query_arg( array(
+			$del_url = add_query_arg(array(
 				'page' => 'domainmapping',
 				'action' => 'delete',
-			), admin_url( $parent_file ) );
+			), admin_url( $parent_file ));
 			foreach ( $domains as $details ) {
 				$details['path'] = array_key_exists( 'path', $details ) ? $details['path'] : '';
 					// pbrocks hyp.
@@ -575,16 +577,15 @@ class Domain_Mapping {
 				echo "</td><td><a href='$url'>$url</a></td><td style='text-align: center'>";
 					// pbrocks hyp.
 				if ( $details['domain'] != $orig_url['host'] && $details['active'] != 1 ) {
-					echo "<a href='" . wp_nonce_url( add_query_arg( array(
+					echo "<a href='" . wp_nonce_url(add_query_arg(array(
 						'domain' => $details['domain'],
-					), $del_url ), 'delete' . $details['domain'] ) . "'>Del</a>";
+					), $del_url), 'delete' . $details['domain']) . "'>Del</a>";
 				}
 				echo '</td></tr>';
 				if ( 0 == $primary_found ) {
 					$primary_found = $details['active'];
 				}
-			}
-			?></table><?php
+			} ?></table><?php
 			echo '<input type="hidden" name="action" value="primary" />';
 			echo "<p><input type='submit' class='button-primary' value='" . __( 'Set Primary Domain', 'cmpbl-domain-mapping' ) . "' /></p>";
 			wp_nonce_field( 'domain_mapping' );
@@ -618,7 +619,6 @@ if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
 		}
 		echo '<p>' . sprintf( __( '<strong>Note:</strong> %s', 'cmpbl-domain-mapping' ), self::dm_idn_warning() ) . '</p>';
 		echo '</div>';
-
 	}
 
 
@@ -745,7 +745,7 @@ if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
 			$url = self::get_original_url( 'siteurl', $blog_id ) . substr( $url, $index );
 
 			// make sure admin_url is ssl if current page is ssl, or admin ssl is forced
-			if ( ( is_ssl() || force_ssl_admin() ) && 0 === strpos( $url, 'http://' ) ) {
+			if ( (is_ssl() || force_ssl_admin()) && 0 === strpos( $url, 'http://' ) ) {
 				$url = 'https://' . substr( $url, 7 );
 			}
 		}
@@ -870,7 +870,7 @@ if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
 		$url = self::domain_mapping_siteurl( false );
 		if ( $url && $url != untrailingslashit( $protocol . $current_blog->domain . $current_blog->path ) ) {
 			$redirect = get_site_option( 'dm_301_redirect' ) ? '301' : '302';
-			if ( ( defined( 'VHOST' ) && constant( 'VHOST' ) != 'yes' ) || ( defined( 'SUBDOMAIN_INSTALL' ) && constant( 'SUBDOMAIN_INSTALL' ) == false ) ) {
+			if ( (defined( 'VHOST' ) && constant( 'VHOST' ) != 'yes') || (defined( 'SUBDOMAIN_INSTALL' ) && constant( 'SUBDOMAIN_INSTALL' ) == false) ) {
 				$_SERVER['REQUEST_URI'] = str_replace( $current_blog->path, '/', $_SERVER['REQUEST_URI'] );
 			}
 			header( "Location: {$url}{$_SERVER[ 'REQUEST_URI' ]}", true, $redirect );
@@ -912,19 +912,19 @@ if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
 				}
 				$key = md5( time() . mt_rand() );
 				$wpdb->query( $wpdb->prepare( "INSERT INTO {$wpdb->dmtablelogins} ( `id`, `user_id`, `blog_id`, `t` ) VALUES( %s, %d, %d, NOW() )", $key, $current_user->ID, $_GET['blogid'] ) );
-				$url = add_query_arg( array(
+				$url = add_query_arg(array(
 					'action' => 'login',
 					'dm' => $hash,
 					'k' => $key,
 					't' => mt_rand(),
-				), $_GET['back'] );
+				), $_GET['back']);
 				echo "window.location = '$url'";
 				exit;
 			} elseif ( $_GET['action'] == 'login' ) {
 				if ( $details = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->dmtablelogins} WHERE id = %s AND blog_id = %d", $_GET['k'], $wpdb->blogid ) ) ) {
 					if ( $details->blog_id == $wpdb->blogid ) {
 						$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->dmtablelogins} WHERE id = %s", $_GET['k'] ) );
-						$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->dmtablelogins} WHERE t < %d", ( time() - 120 ) ) ); // remote logins survive for only 2 minutes if not used.
+						$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->dmtablelogins} WHERE t < %d", (time() - 120) ) ); // remote logins survive for only 2 minutes if not used.
 						wp_set_auth_cookie( $details->user_id );
 						wp_redirect( remove_query_arg( array( 'dm', 'action', 'k', 't', $protocol . $current_blog->domain . $_SERVER['REQUEST_URI'] ) ) );
 						exit;
@@ -1013,7 +1013,6 @@ if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
 	 * csc.
 	 */
 	public static function add_column_for_aliases( $column_name, $blog_id ) {
-
 		$mapped_alias = self::get_mapped_domains_array();
 
 		if ( 'blog_id' === $column_name ) {
@@ -1049,7 +1048,7 @@ if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
 	 * dashicons-admin-multisite
 	 */
 	public static function domain_mapping_menu() {
-		add_menu_page( 'Mapping Aliases', 'Mapping Aliases', 'manage_options', 'map-your-domain.php',  array( __CLASS__, 'main_domain_mapping_page' ), 'dashicons-networking', 9 );
+		add_menu_page( 'Mapping Aliases', 'Mapping Aliases', 'manage_options', 'map-your-domain.php', array( __CLASS__, 'main_domain_mapping_page' ), 'dashicons-networking', 9 );
 	}
 
 	/**
@@ -1086,7 +1085,6 @@ if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
 		// add_submenu_page( 'map-your-domain.php', 'Mapt Domains', 'Mapt Domains', 'manage_options', 'dm_domains_admin', array( __CLASS__, 'dm_domains_admin' ) );
 		add_submenu_page( 'map-your-domain.php', 'Mapt Domains', 'Mapt Domains', 'manage_options', 'dm_domains_admin', array( __CLASS__, 'network_assigning_mapping' ) );
 		add_submenu_page( 'map-your-domain.php', 'Domain Mapping', 'Domain Mapping', 'manage_options', 'dm_admin_page', array( __CLASS__, 'network_mapping_configuration' ) );
-
 	}
 
 	/**
@@ -1095,7 +1093,7 @@ if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
 	public static function main_domain_mapping_page() {
 		echo '<div class="wrap">';
 		echo '<h2>' . __FUNCTION__ . '<h2>';
-			global $current_site, $wpdb;
+		global $current_site, $wpdb;
 
 		if ( is_network_admin() ) {
 			// echo '<h3 style="color:#700;">You are viewing the WordPress MultiSite network administration page</h3>';
@@ -1132,7 +1130,7 @@ if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
 	}
 
 	public static function diagnositc_submenu_page() {
-		add_submenu_page( 'map-your-domain.php', 'Domain Mapping Settings', 'Mapping Settings', 'manage_options', 'domain-mapping-diagnostics.php',  array( __CLASS__, 'mapped_subsite_diag_page' ) );
+		add_submenu_page( 'map-your-domain.php', 'Domain Mapping Settings', 'Mapping Settings', 'manage_options', 'domain-mapping-diagnostics.php', array( __CLASS__, 'mapped_subsite_diag_page' ) );
 	}
 
 	/**
