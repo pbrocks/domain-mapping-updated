@@ -2,7 +2,8 @@
 
 namespace Domain_Mapping_Updated\inc\classes;
 
-use \Connect_Core_WP\inc\classes\Central_Toggle_Control as Toggle;
+// use \Connect_Core_WP\inc\classes\Central_Toggle_Control as Toggle;
+use Domain_Mapping_Updated\inc\classes\Customizer_Toggle_Control as Toggle;
 
 defined( 'ABSPATH' ) || die( 'File cannot be accessed directly' );
 
@@ -21,8 +22,8 @@ class CSC_Theme_Customizer {
 	public static function customizer_manager( $wp_manager ) {
 		$plugin = 'connect-core-wp';
 		// if ( ! is_plugin_active( $plugin . '/' . $plugin . '.php' ) ) {
-			// self::domain_mapping_solo( $wp_manager );
-			self::domain_mapping_connect( $wp_manager );
+			self::domain_mapping_solo( $wp_manager );
+			// self::domain_mapping_connect( $wp_manager );
 		// } else {
 		// self::domain_mapping_connect( $wp_manager );
 		// self::domain_mapping_solo( $wp_manager );
@@ -37,16 +38,22 @@ class CSC_Theme_Customizer {
 	 */
 	public static function check_for_panels() {
 		$toggle = array();
-		if ( class_exists( 'Toggle' ) ) {
+		if ( true === CONNECT_CORE ) {
+		// if ( ! class_exists( 'Toggle' ) ) {
 			$toggle['panel'] = 'domain_mapping_panel';
 			$toggle['label'] = 'Domain Mapping';
+			$toggle['control'] = 'Domain Mapping';
 		} else {
 			$toggle['panel'] = 'core_connect_panel';
 			$toggle['label'] = 'Core Connect';
+			$toggle['control'] = 'Domain Mapping';
 		}
 		return $toggle;
 	}
 
+	public static function define_toggle() {
+		// use Domain_Mapping_Updated\inc\classes\Customizer_Toggle_Control as Toggle;	
+	}
 	/**
 	 * Customizer manager
 	 *
@@ -58,8 +65,7 @@ class CSC_Theme_Customizer {
 		$toggle = self::check_for_panels();
 		$panel = $toggle['panel'];
 		$label = $toggle['label'];
-		$create = $toggle['toggle'];
-
+		// $create = $toggle['toggle'];
 		$wp_manager->add_section( 'domain_mapping_section', array(
 			'title'          => 'Domain Mapping',
 			'priority'       => 13,
@@ -247,11 +253,10 @@ class CSC_Theme_Customizer {
 		$toggle = self::check_for_panels();
 		$panel = $toggle['panel'];
 		$label = $toggle['label'];
-		$create = $toggle['toggle'];
-
+		// $create = $toggle['toggle'];
 		// $wp_manager->add_panel( $toggle['panel'], array(
 		$wp_manager->add_panel( 'domain_mapping_panel', array(
-			'title'          => __( $toggle['panel'], 'csc-domain-mapping' ),
+			'title'          => __( $toggle['label'], 'csc-domain-mapping' ),
 			'priority' => 10,
 			'capability' => 'edit_theme_options',
 			'theme_supports' => '',
@@ -263,6 +268,7 @@ class CSC_Theme_Customizer {
 			'title'          => $toggle['label'],
 			'priority'       => 13,
 			'panel'          => 'domain_mapping_panel',
+			'description'          => $toggle['panel'] . ' description',
 		) );
 
 		$wp_manager->add_setting( 'ce_image_https',
@@ -270,12 +276,28 @@ class CSC_Theme_Customizer {
 				'default'        => false,
 		) );
 
-		$wp_manager->add_control( 'ce_image_https',
+		$wp_manager->add_control( new Toggle( $wp_manager, 'ce_image_https',
 			array(
 			'settings'   => 'ce_image_https',
 			'label'      => __( 'ce Image https URL', 'csc-domain-mapping' ),
 			'section'    => 'content_options_section',
-			'type'       => 'checkbox',
+			'type'       => 'ios',
+			)
+		) );
+
+		$wp_manager->add_setting( 'fix_nav_item_url',
+			array(
+			'default'        => false,
+			)
+		);
+
+		$wp_manager->add_control( new Toggle( $wp_manager, 'fix_nav_item_url',
+			array(
+				'settings'   => 'fix_nav_item_url',
+				'label'      => __( 'Fix Nav Item URL', 'csc-domain-mapping' ),
+				'section'    => 'domain_mapping_section',
+				'type'       => 'ios',
+			)
 		) );
 
 		// add "Content Options" section
@@ -292,25 +314,27 @@ class CSC_Theme_Customizer {
 
 		// add control for page comment toggle checkbox
 		$wp_manager->add_control(
-
-			'page_comment_toggle', array(
-			'label'     => __( 'Show comments on pages?', 'csc-domain-mapping' ),
-			'section'   => 'content_options_section',
-			'priority'  => 10,
-			'type'       => 'checkbox',
-		) );
+		 new Toggle( $wp_manager,
+			 'page_comment_toggle', array(
+			 'label'     => __( 'Show comments on pages?', 'csc-domain-mapping' ),
+			 'section'   => 'content_options_section',
+			 'priority'  => 10,
+			 'type'       => 'checkbox',
+			 )
+		 ) );
 
 		$wp_manager->add_setting( 'wds_force_image_https',
 			array(
 			'default'        => false,
 			)
 		);
-		$wp_manager->add_control( 'wds_force_image_https',
+		$wp_manager->add_control( new Toggle( $wp_manager, 'wds_force_image_https',
 			array(
 			'settings'   => 'wds_force_image_https',
 			'label'      => __( 'WDS Force Image https URL', 'csc-domain-mapping' ),
 			'section'    => 'domain_mapping_section',
-			'type'      => 'checkbox',
+			'type'      => 'ios',
+			)
 		) );
 		$wp_manager->add_setting( 'fix_header_image',
 			array(

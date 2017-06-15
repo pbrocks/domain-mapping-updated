@@ -51,11 +51,11 @@ function prepend_class( $string ) {
 	for ( $i = 0; $i < count( $parts ); $i++ ) {
 
 		if ( count( $parts ) - 1 === $i ) {
-		    $new_name .= 'class-';
-		    $new_name .= $parts[ $i ];
+			$new_name .= 'class-';
+			$new_name .= $parts[ $i ];
 		} else {
-		    $new_name .= $parts[ $i ];
-		    $new_name .= '\\';
+			$new_name .= $parts[ $i ];
+			$new_name .= '\\';
 		}
 	}
 

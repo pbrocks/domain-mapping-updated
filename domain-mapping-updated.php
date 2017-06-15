@@ -28,6 +28,13 @@ if ( is_plugin_active_for_network( 'domain-mapping-updated/domain-mapping-update
 	define( 'PLUGIN_NETWORK_ACTIVATED', false );
 }
 
+if ( is_plugin_active_for_network( 'connect-core-wp/connect-core-wp.php' ) ) {
+	// path to plugin folder and main file
+	define( 'CONNECT_CORE', true );
+} else {
+	define( 'CONNECT_CORE', false );
+}
+
 require 'inc/functions/domain-mapping.php';
 
 require_once 'autoload.php';
