@@ -23,8 +23,9 @@ function dm_add_pages() {
 		add_action( 'admin_notices', 'domain_mapping_warning' );
 		return false;
 	}
-	if ( $current_site->path != '/' ) {
-		wp_die( __( 'The domain mapping plugin only works if the site is installed in /. This is a limitation of how virtual servers work and is very difficult to work around.', 'domain-mapping-updated' ) );
+
+	if ( '/' !== $current_site->path ) {
+		install_in_root_warning();
 	}
 
 	if ( get_site_option( 'dm_user_settings' ) && $current_site->blog_id != $wpdb->blogid && ! dm_sunrise_warning( false ) ) {
@@ -128,7 +129,8 @@ function temp_enqueue_style() {
  */
 function dm_domains_admin() {
 	global $wpdb, $current_site;
-	if ( false == dm_site_admin() ) { // paranoid? moi?
+	// paranoid? moi?
+	if ( false === dm_site_admin() ) {
 		return false;
 	}
 
