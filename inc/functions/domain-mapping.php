@@ -110,6 +110,12 @@ function temp_enqueue_style() {
 		text-align: center;
 		width: 95%;
 	}
+	.salmon {
+		color: salmon;
+	}
+	.gray {
+		color: #a1a1a1;
+	}
 </style>
 <?php
 
@@ -259,7 +265,7 @@ function dm_edit_domain( $row = false ) {
 	echo '<tr><th>' . __( 'Primary', 'domain-mapping-updated' ) . "</th><td><input type='checkbox' name='active' value='1' ";
 	echo $row->active == 1 ? 'checked=1 ' : ' ';
 	echo "/></td></tr>\n";
-	if ( 1 === get_site_option( 'dm_no_primary_domain' ) ) {
+	if ( '1' === get_site_option( 'dm_no_primary_domain' ) ) {
 		echo "<tr><td colspan='2'>" . __( '<strong>Warning!</strong> Primary domains are currently disabled.', 'domain-mapping-updated' ) . '</td></tr>';
 	}
 	echo '</table>';
@@ -300,7 +306,7 @@ function dm_domain_listing( $rows, $heading = '' ) {
 			echo '</td></tr>';
 		}
 		echo '</table>';
-		if ( 1 === get_site_option( 'dm_no_primary_domain' ) ) {
+		if ( '1' === get_site_option( 'dm_no_primary_domain' ) ) {
 			primary_domains_disabled_notice();
 		}
 	}
@@ -388,6 +394,7 @@ function general_domain_mapping_settings() {
 			if ( intval( $_POST['always_redirect_admin'] ) == 0 ) {
 				$_POST['dm_remote_login'] = 0; // disable remote login if redirecting to mapped domain
 			}
+			// Notice: Undefined index: dm_remote_login in /Applications/MAMP/htdocs/second-site/wp-content/plugins/domain-mapping-updated/inc/functions/domain-mapping.php on line 397
 			update_site_option( 'dm_remote_login', intval( $_POST['dm_remote_login'] ) );
 			if ( ! preg_match( '/(--|\.\.)/', $_POST['cname'] ) && preg_match( '|^([a-zA-Z0-9-\.])+$|', $_POST['cname'] ) ) {
 				update_site_option( 'dm_cname', stripslashes( $_POST['cname'] ) );
@@ -560,19 +567,39 @@ function dm_manage_page() {
 
 	temp_enqueue_style();
 
-	echo "<div class='wrap'><h2>" . __( 'Domain Mapping', 'domain-mapping-updated' ) . '</h2>';
+	echo '<div class="wrap">';
+
+	echo '<h2>' . sprintf( 'Domain Mapping %s', __FUNCTION__, 'domain-mapping-updated' ) . '</h2>';
 
 	if ( false == get_site_option( 'dm_ipaddress' ) && false == get_site_option( 'dm_cname' ) ) {
 		if ( dm_site_admin() ) {
-			_e( "Please set the IP address or CNAME of your server in the <a href='wpmu-admin.php?page=dm_admin_page'>site admin page</a>.", 'domain-mapping-updated' );
+			echo sprintf( 'Please set the IP address or CNAME of your server in the <a href="%s" target="_blank">site admin page</a>.', network_admin_url( $path = 'settings.php?page=dm_admin_page' ), 'domain-mapping-updated' );
 		} else {
 			_e( 'This plugin has not been configured correctly yet.', 'domain-mapping-updated' );
 		}
 		echo '</div>';
 		return false;
 	}
+	echo '<div class="container-full"><div class="container-left">';
+	echo '<h3>' . __( 'Add new domain', 'domain-mapping-updated' ) . '</h3>';
+	echo '<form method="POST">';
+	echo '<input type="hidden" name="action" value="add" />';
+	echo "<p>http(s)://<input type='text' name='domain' value='' />/<br>";
+	wp_nonce_field( 'domain_mapping' );
+
+	if ( '1' === get_site_option( 'dm_no_primary_domain' ) ) {
+		// <<PRIM>>
+		echo  __( '<p class="gray">Domains can be added, but not set as Primary</p>', 'domain-mapping-updated' ) . '</p>';
+	} else {
+		echo '<input type="checkbox" name="primary" value="1"  /> ' . __( 'Set as Primary domain for this site.', 'domain-mapping-updated' ) . '</p>';
+	}
+	// <<PRIM>>
+	echo '<p><input type="submit" class="button-secondary" value="' . __( 'Add', 'domain-mapping-updated' ) . '" /></p>';
+	echo '</form><br>';
+	echo '</div><div class="container-right">';
 
 	$protocol = is_ssl() ? 'https://' : 'http://';
+
 	$domains = $wpdb->get_results( "SELECT * FROM {$wpdb->dmtable} WHERE blog_id = '{$wpdb->blogid}'", ARRAY_A );
 	if ( is_array( $domains ) && ! empty( $domains ) ) {
 		$orig_url = parse_url( get_original_url( 'siteurl' ) );
@@ -581,8 +608,6 @@ function dm_manage_page() {
 			'path' => $orig_url['path'],
 			'active' => 0,
 		);
-
-		echo '<div class="container-full"><div class="container-left">';
 
 		echo '<h3>' . __( 'Active domains on this blog', 'domain-mapping-updated' ) . '</h3>';
 		echo '<form method="POST">';
@@ -615,33 +640,23 @@ function dm_manage_page() {
 				$primary_found = $details['active'];
 			}
 		} ?></table><?php
+		// <<PRIM>>
+		echo '<p class="gray">' . __( 'Neither the original domain nor a primary domain can be deleted.', 'domain-mapping-updated' ) . '</p>';
 		echo '<input type="hidden" name="action" value="primary" />';
-		echo "<p><input type='submit' class='button-primary' value='" . __( 'Set Primary Domain', 'domain-mapping-updated' ) . "' /></p>";
+		echo '<p><input type="submit" class="button-primary" value="' . __( 'Set Primary Domain', 'domain-mapping-updated' ) . '" /></p>';
 		wp_nonce_field( 'domain_mapping' );
 		echo '</form>';
 
-		echo '<p>' . __( '* The primary domain cannot be deleted.', 'domain-mapping-updated' ) . '</p>';
-if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
-	echo __( '<strong>Warning!</strong> Primary domains are currently disabled.', 'domain-mapping-updated' );
+if ( '1' === get_site_option( 'dm_no_primary_domain' ) ) {
+	primary_domains_disabled_notice();
 }
 	}// End if().
-		echo '</div><div class="container-right">';
-
-	echo '<h3>' . __( 'Add new domain', 'domain-mapping-updated' ) . '</h3>';
-	echo '<form method="POST">';
-	echo '<input type="hidden" name="action" value="add" />';
-	echo "<p>http://<input type='text' name='domain' value='' />/<br>";
-	wp_nonce_field( 'domain_mapping' );
-	echo "<input type='checkbox' name='primary' value='1' /> " . __( 'Primary domain for this blog', 'domain-mapping-updated' ) . '</p>';
-	echo "<p><input type='submit' class='button-secondary' value='" . __( 'Add', 'domain-mapping-updated' ) . "' /></p>";
-	echo '</form><br>';
-
 	echo '</div><div class="container-inner">';
 
 	if ( get_site_option( 'dm_cname' ) ) {
 		$dm_cname = get_site_option( 'dm_cname' );
 		echo '<p>' . sprintf( __( 'If you want to redirect a domain you will need to add a DNS "CNAME" record pointing to the following domain name for this server: <strong>%s</strong>', 'domain-mapping-updated' ), $dm_cname ) . '</p>';
-		echo '<p>' . __( 'Google have published <a href="http://www.google.com/support/blogger/bin/answer.py?hl=en&answer=58317" target="_blank">instructions</a> for creating CNAME records on various hosting platforms such as GoDaddy and others.', 'domain-mapping-updated' ) . '</p>';
+		echo '<p>' . __( 'Google have published <a href="//www.google.com/support/blogger/bin/answer.py?hl=en&answer=58317" target="_blank">instructions</a> for creating CNAME records on various hosting platforms such as GoDaddy and others.', 'domain-mapping-updated' ) . '</p>';
 	} else {
 		echo '<p>' . __( 'If your domain name includes a hostname like "www", "blog" or some other prefix before the actual domain name you will need to add a CNAME for that hostname in your DNS pointing at this blog URL.', 'domain-mapping-updated' ) . '</p>';
 		$dm_ipaddress = get_site_option( 'dm_ipaddress', 'IP not set by admin yet.' );
@@ -674,9 +689,8 @@ function domain_mapping_siteurl( $setting ) {
 		$s = $wpdb->suppress_errors();
 
 		if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
-			// RMURPHY - Update to allow hosting both sub-domains and sub-directories
-						//
-						global $override_domain;
+			// RMURPHY - Update to allow hosting both sub-domains and sub-directories.
+			global $override_domain;
 			if ( isset( $override_domain ) ) {
 				$domain = $override_domain;
 			} else {
@@ -685,15 +699,14 @@ function domain_mapping_siteurl( $setting ) {
 					$wpdb->prepare( "SELECT domain FROM {$wpdb->dmtable} WHERE blog_id = %d AND domain = %s LIMIT 1", $wpdb->blogid, $_SERVER['HTTP_HOST'] )
 				);
 			}
-						// RMURPHY End Update
+			// RMURPHY End Update
 			if ( null == $domain ) {
 				$return_url[ $wpdb->blogid ] = untrailingslashit( get_original_url( 'siteurl' ) );
 				return $return_url[ $wpdb->blogid ];
 			}
 		} else {
-			// RMURPHY - Update to allow hosting both sub-domains and sub-directories
-						//
-						global $override_domain;
+			// RMURPHY - Update to allow hosting both sub-domains and sub-directories.
+			global $override_domain;
 			if ( isset( $override_domain ) ) {
 				$domain = $override_domain;
 			} else {
@@ -702,7 +715,7 @@ function domain_mapping_siteurl( $setting ) {
 					$wpdb->prepare( 'SELECT domain FROM %s WHERE blog_id = %d AND active = 1 LIMIT 1', $wpdb->dmtable, $wpdb->blogid )
 				);
 			}
-			// RMURPHY End Update
+			// RMURPHY End Update.
 			if ( null == $domain ) {
 				$return_url[ $wpdb->blogid ] = untrailingslashit( get_original_url( 'siteurl' ) );
 				return $return_url[ $wpdb->blogid ];
@@ -717,7 +730,7 @@ function domain_mapping_siteurl( $setting ) {
 		} else {
 			$return_url[ $wpdb->blogid ] = false;
 		}
-	} elseif ( $return_url[ $wpdb->blogid ] !== false ) {
+	} elseif ( false !== $return_url[ $wpdb->blogid ] ) {
 		$setting = $return_url[ $wpdb->blogid ];
 	}// End if().
 
@@ -776,7 +789,7 @@ function get_original_url( $url, $blog_id = 0 ) {
  */
 function domain_mapping_adminurl( $url, $path, $blog_id = 0 ) {
 	$index = strpos( $url, '/wp-admin' );
-	if ( $index !== false ) {
+	if ( false !== $index ) {
 		$url = get_original_url( 'siteurl', $blog_id ) . substr( $url, $index );
 
 		// make sure admin_url is ssl if current page is ssl, or admin ssl is forced

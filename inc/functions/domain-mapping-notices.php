@@ -49,7 +49,7 @@ function dm_echo_default_updated_msg() {
  * @return [type] [description]
  */
 function primary_domains_disabled_notice() {
-	echo '<h3 class="salmon">' . __( '<strong>Warning!</strong> Primary domains are currently disabled.', 'domain-mapping-updated' ) . '</h3>';
+	echo '<h3 class="salmon">' . __( 'Primary domains are currently disabled.', 'domain-mapping-updated' ) . '</h3>';
 }
 
 /**
