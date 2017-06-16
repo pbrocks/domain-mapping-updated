@@ -75,7 +75,7 @@ function dm_sunrise_warning( $die = true ) {
 		}
 
 		if ( dm_site_admin() ) {
-			wp_die( sprintf( __( "Please uncomment the line <em>define( 'SUNRISE', 'on' );</em> or add it to your %swp-config.php", 'domain-mapping-updated' ), ABSPATH ) );
+			wp_die( sprintf( __( '<h3 class="salmon">Please uncomment the line <em>define( \'SUNRISE\', \'on\' );</em> or add it to your %swp-config.php', 'domain-mapping-updated' ), ABSPATH ) );
 		} else {
 			wp_die( __( 'This plugin has not been configured correctly yet.', 'domain-mapping-updated' ) );
 		}

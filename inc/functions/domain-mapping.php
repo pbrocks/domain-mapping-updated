@@ -409,9 +409,9 @@ function general_domain_mapping_settings() {
 				$_POST['dm_remote_login'] = 0; // disable remote login if redirecting to mapped domain
 			}
 			// Notice: Undefined index: dm_remote_login in /Applications/MAMP/htdocs/second-site/wp-content/plugins/domain-mapping-updated/inc/functions/domain-mapping.php on line 397
-			if ( ! empty( $_POST['dm_remote_login'] ) ) {
+			// if ( ! empty( $_POST['dm_remote_login'] ) ) {
 				update_site_option( 'dm_remote_login', intval( $_POST['dm_remote_login'] ) );
-			}
+			// }
 			if ( ! preg_match( '/(--|\.\.)/', $_POST['cname'] ) && preg_match( '|^([a-zA-Z0-9-\.])+$|', $_POST['cname'] ) ) {
 				update_site_option( 'dm_cname', stripslashes( $_POST['cname'] ) );
 			} else {
@@ -456,7 +456,7 @@ function general_domain_mapping_settings() {
 	echo ' /> ' . __( 'Disable primary domain check. Sites will not redirect to one domain name. May cause duplicate content issues.', 'domain-mapping-updated' ) . '</li></ol>';
 	wp_nonce_field( 'domain_mapping' );
 	echo "<p><input class='button-primary' type='submit' value='" . __( 'Save', 'domain-mapping-updated' ) . "' /></p>";
-	echo '</form><br></div></div>';
+	echo '</form><br></div>';
 }
 
 /**
@@ -598,7 +598,7 @@ function dm_manage_page() {
 	}
 	echo '<div class="container-full"><div class="container-left">';
 	echo '<h3>' . __( 'Add new domain', 'domain-mapping-updated' ) . '</h3>';
-	echo '<form method="POST">';
+	echo '<div class="container-padding"><form method="POST">';
 	echo '<input type="hidden" name="action" value="add" />';
 	echo "<p>http(s)://<input type='text' name='domain' value='' />/<br>";
 	wp_nonce_field( 'domain_mapping' );
@@ -612,7 +612,7 @@ function dm_manage_page() {
 	// <<PRIM>>
 	echo '<p><input type="submit" class="button-secondary" value="' . __( 'Add', 'domain-mapping-updated' ) . '" /></p>';
 	echo '</form><br>';
-	echo '</div><div class="container-right">';
+	echo '</div></div><div class="container-right">';
 
 	$protocol = is_ssl() ? 'https://' : 'http://';
 
@@ -626,7 +626,7 @@ function dm_manage_page() {
 		);
 
 		echo '<h3>' . __( 'Active domains on this blog', 'domain-mapping-updated' ) . '</h3>';
-		echo '<form method="POST">';
+		echo '<div class="container-padding"><form method="POST">';
 		echo '<table><tr><th>' . __( 'Primary', 'domain-mapping-updated' ) . '</th><th>' . __( 'Domain', 'domain-mapping-updated' ) . '</th><th>' . __( 'Delete', 'domain-mapping-updated' ) . "</th></tr>\n";
 		$primary_found = 0;
 		$del_url = add_query_arg(array(
@@ -661,7 +661,7 @@ function dm_manage_page() {
 		echo '<input type="hidden" name="action" value="primary" />';
 		echo '<p><input type="submit" class="button-primary" value="' . __( 'Set Primary Domain', 'domain-mapping-updated' ) . '" /></p>';
 		wp_nonce_field( 'domain_mapping' );
-		echo '</form>';
+		echo '</form></div>';
 
 if ( '1' === get_site_option( 'dm_no_primary_domain' ) ) {
 	primary_domains_disabled_salmon();
