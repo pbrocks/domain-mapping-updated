@@ -177,6 +177,7 @@ function dm_domains_admin() {
 						$wpdb->query( $wpdb->prepare( "INSERT INTO {$wpdb->dmtable} ( `blog_id`, `domain`, `active` ) VALUES ( %d, %s, %d )", $_POST['blog_id'], $domain, $_POST['active'] ) );
 						echo '<p><strong>' . __( 'Domain Add', 'domain-mapping-updated' ) . '</strong></p>';
 					} else {
+						// Notice: Undefined index: active in /Applications/MAMP/htdocs/domain-maap/wp-content/plugins/domain-mapping-updated/inc/functions/domain-mapping.php on line 180
 						$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->dmtable} SET blog_id = %d, domain = %s, active = %d WHERE domain = %s", $_POST['blog_id'], $domain, $_POST['active'], $_POST['orig_domain'] ) );
 						echo '<p><strong>' . __( 'Domain Updated', 'domain-mapping-updated' ) . '</strong></p>';
 					}
