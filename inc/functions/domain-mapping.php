@@ -24,8 +24,7 @@ function dm_enqueue_style( $hook ) {
 	}
 
 }
-add_action( 'admin_enqueue_scripts', 'dm_enqueue_style' );
-
+// add_action( 'admin_enqueue_scripts', 'dm_enqueue_style' );
 /**
  * [dm_add_pages description]
  *

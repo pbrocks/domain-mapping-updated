@@ -28,11 +28,11 @@ class Domain_Mapping {
 	 * @return void
 	 */
 	public static function init() {
-		// add_action( 'admin_head', array( __CLASS__, 'echo_current_subsite' ) );
+		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'domain_mapping_css' ) );
 		add_action( 'admin_menu', array( __CLASS__, 'domain_mapping_menu' ) );
 		add_action( 'network_admin_menu', array( __CLASS__, 'domain_mapping_menu' ) );
 		add_action( 'network_admin_menu', array( __CLASS__, 'domain_mapping_network_menus' ) );
-		// add_action( 'admin_menu', array( __CLASS__, 'domain_mapping_subsite_menus' ) );
+		add_action( 'admin_menu', array( __CLASS__, 'domain_mapping_subsite_menus' ) );
 		// add_action( 'admin_menu', array( __CLASS__, 'diagnositc_submenu_page' ) );
 		// add_action( 'init', array( __CLASS__, 'domain_mapping_filters' ) );
 		add_action( 'manage_sites_custom_column', array( __CLASS__, 'add_column_for_aliases' ), 10, 2 );
@@ -43,6 +43,16 @@ class Domain_Mapping {
 		// add_action( 'template_redirect', array( __CLASS__, 'redirect_to_mapped_domain' ) );
 		// add_action( 'dm_echo_updated_msg', array( __CLASS__, 'dm_echo_default_updated_msg' ) );
 		// add_action( 'admin_init', array( __CLASS__, 'dm_redirect_admin' ) );
+	}
+	/**
+	 * [domain_mapping_filters description]
+	 *
+	 * @return [type] [description]
+	 */
+	public static function domain_mapping_css( $hook ) {
+		if ( 'settings_page_dm_domains_admin' === $hook || 'settings_page_dm_admin_page' === $hook || 'tools_page_domainmapping' === $hook ) {
+			wp_enqueue_style( 'domain-mapping', plugins_url( '../css/domain-mapping.css', __FILE__ ) );
+		}
 	}
 
 	public static function domain_mapping_filters() {
