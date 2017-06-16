@@ -117,6 +117,12 @@ function temp_enqueue_style() {
 	.gray {
 		color: #a1a1a1;
 	}
+	.container-inner > table > thead > tr > th {
+		text-align: center;
+	}
+	.container-padding {
+		width: 85%;
+	}
 </style>
 <?php
 
@@ -144,10 +150,6 @@ function dm_domains_admin() {
 
 	echo '<h2>' . __( '0ld Adding/Editing Domains', 'domain-mapping-updated' ) . '</h2>';
 
-	if ( '1' === get_site_option( 'dm_no_primary_domain' ) ) {
-		echo "<tr><td colspan='2'>" . __( '<strong>Warning!</strong> Primary domains are currently disabled.', 'domain-mapping-updated' ) . '</td></tr>';
-	}
-
 	if ( ! empty( $_POST['action'] ) ) {
 		check_admin_referer( 'domain_mapping' );
 		$domain = strtolower( $_POST['domain'] );
@@ -163,7 +165,7 @@ function dm_domains_admin() {
 			case 'save':
 				if ( $_POST['blog_id'] != 0 and
 					$_POST['blog_id'] != 1 and
-					null == $wpdb->get_var( $wpdb->prepare( "SELECT domain FROM {$wpdb->dmtable} WHERE blog_id != %d AND domain = %s", $_POST['blog_id'], $domain ) )
+					null === $wpdb->get_var( $wpdb->prepare( "SELECT domain FROM {$wpdb->dmtable} WHERE blog_id != %d AND domain = %s", $_POST['blog_id'], $domain ) )
 				) {
 					if ( '' === $_POST['orig_domain'] ) {
 						// Notice: Undefined index: active in /Applications/MAMP/htdocs/second-site/wp-content/plugins/domain-mapping-updated/inc/functions/domain-mapping.php on line 184
@@ -187,6 +189,7 @@ function dm_domains_admin() {
 				dm_domain_listing( $rows, sprintf( __( 'Searching for %s', 'domain-mapping-updated' ), esc_html( $domain ) ) );
 			break;
 		}// End switch().
+
 		if ( $_POST['action'] == 'update' ) {
 			if ( preg_match( '|^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$|', $_POST['ipaddress'] ) ) {
 				update_site_option( 'dm_ipaddress', $_POST['ipaddress'] );
@@ -208,7 +211,7 @@ function dm_domains_admin() {
 	echo '</div><div class="container-inner">';
 	new_list_mapped_domains();
 	echo '</div></div>';
-}
+}//end dm_domains_admin()
 /**
  * [new_search_listed_domains description]
  *
@@ -264,13 +267,20 @@ function dm_edit_domain( $row = false ) {
 	echo "<table class='form-table'>\n";
 	echo '<tr><th>' . __( 'Site ID', 'domain-mapping-updated' ) . "</th><td><input type='text' name='blog_id' value='{$row->blog_id}' /></td></tr>\n";
 	echo '<tr><th>' . __( 'Domain', 'domain-mapping-updated' ) . "</th><td><input type='text' name='domain' value='{$row->domain}' /></td></tr>\n";
-	echo '<tr><th>' . __( 'Primary', 'domain-mapping-updated' ) . "</th><td><input type='checkbox' name='active' value='1' ";
-	echo $row->active == 1 ? 'checked=1 ' : ' ';
-	echo "/></td></tr>\n";
 	if ( '1' === get_site_option( 'dm_no_primary_domain' ) ) {
-		echo "<tr><td colspan='2'>" . __( '<strong>Warning!</strong> Primary domains are currently disabled.', 'domain-mapping-updated' ) . '</td></tr>';
+		echo '<tr><th>' . __( '<span class="gray">Primary disabled</span>', 'domain-mapping-updated' ) . "</th><td><input type='checkbox' name='active' disabled value='1' ";
+		echo $row->active == 1 ? 'checked=0 ' : ' ';
+	} else {
+		echo '<tr><th>' . __( 'Set as Primary', 'domain-mapping-updated' ) . "</th><td><input type='checkbox' name='active' value='1' ";
+		echo $row->active == 1 ? 'checked=1 ' : ' ';
 	}
+	echo "/></td></tr>\n";
+
 	echo '</table>';
+	// if ( '1' === get_site_option( 'dm_no_primary_domain' ) ) {
+		// echo primary_domains_disabled_salmon();
+		// echo "<tr><td colspan='2'>" . primary_domains_disabled_salmon() . '</td></tr>';
+	// }
 	echo "<p><input type='submit' class='button-primary' value='" . __( 'Save', 'domain-mapping-updated' ) . "' /></p></form><br><br>";
 }
 
@@ -309,7 +319,7 @@ function dm_domain_listing( $rows, $heading = '' ) {
 		}
 		echo '</table>';
 		if ( '1' === get_site_option( 'dm_no_primary_domain' ) ) {
-			primary_domains_disabled_notice();
+			primary_domains_disabled_salmon();
 		}
 	}
 }
@@ -397,7 +407,9 @@ function general_domain_mapping_settings() {
 				$_POST['dm_remote_login'] = 0; // disable remote login if redirecting to mapped domain
 			}
 			// Notice: Undefined index: dm_remote_login in /Applications/MAMP/htdocs/second-site/wp-content/plugins/domain-mapping-updated/inc/functions/domain-mapping.php on line 397
-			update_site_option( 'dm_remote_login', intval( $_POST['dm_remote_login'] ) );
+			if ( ! empty( $_POST['dm_remote_login'] ) ) {
+				update_site_option( 'dm_remote_login', intval( $_POST['dm_remote_login'] ) );
+			}
 			if ( ! preg_match( '/(--|\.\.)/', $_POST['cname'] ) && preg_match( '|^([a-zA-Z0-9-\.])+$|', $_POST['cname'] ) ) {
 				update_site_option( 'dm_cname', stripslashes( $_POST['cname'] ) );
 			} else {
@@ -505,7 +517,7 @@ function dm_handle_actions() {
 		switch ( $_POST['action'] ) {
 			case 'add':
 				do_action( 'dm_handle_actions_add', $domain );
-				if ( null == $wpdb->get_row( "SELECT blog_id FROM {$wpdb->blogs} WHERE domain = '$domain'" ) && null == $wpdb->get_row( "SELECT blog_id FROM {$wpdb->dmtable} WHERE domain = '$domain'" ) ) {
+				if ( null === $wpdb->get_row( "SELECT blog_id FROM {$wpdb->blogs} WHERE domain = '$domain'" ) && null === $wpdb->get_row( "SELECT blog_id FROM {$wpdb->dmtable} WHERE domain = '$domain'" ) ) {
 					if ( $_POST['primary'] ) {
 						$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->dmtable} SET active = 0 WHERE blog_id = %d", $wpdb->blogid ) );
 					}
@@ -650,7 +662,7 @@ function dm_manage_page() {
 		echo '</form>';
 
 if ( '1' === get_site_option( 'dm_no_primary_domain' ) ) {
-	primary_domains_disabled_notice();
+	primary_domains_disabled_salmon();
 }
 	}// End if().
 	echo '</div><div class="container-inner">';
@@ -702,7 +714,7 @@ function domain_mapping_siteurl( $setting ) {
 				);
 			}
 			// RMURPHY End Update
-			if ( null == $domain ) {
+			if ( null === $domain ) {
 				$return_url[ $wpdb->blogid ] = untrailingslashit( get_original_url( 'siteurl' ) );
 				return $return_url[ $wpdb->blogid ];
 			}
@@ -718,7 +730,7 @@ function domain_mapping_siteurl( $setting ) {
 				);
 			}
 			// RMURPHY End Update.
-			if ( null == $domain ) {
+			if ( null === $domain ) {
 				$return_url[ $wpdb->blogid ] = untrailingslashit( get_original_url( 'siteurl' ) );
 				return $return_url[ $wpdb->blogid ];
 			}
@@ -961,7 +973,7 @@ add_action( 'template_redirect', 'redirect_to_mapped_domain' );
  */
 function get_dm_hash() {
 	$remote_login_hash = get_site_option( 'dm_hash' );
-	if ( null == $remote_login_hash ) {
+	if ( null === $remote_login_hash ) {
 		$remote_login_hash = md5( time() );
 		update_site_option( 'dm_hash', $remote_login_hash );
 	}

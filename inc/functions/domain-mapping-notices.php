@@ -5,8 +5,17 @@
  *
  * @return [type] [description]
  */
-function primary_disabled() {
-		echo '<h3 class="salmon">' . __( '<strong>Warning!</strong> Primary domains are currently disabled.', 'domain-mapping-updated' ) . '</h3>';
+function primary_domains_disabled_gray() {
+	echo '<h4 class="gray">' . __( 'Primary domains are currently disabled.', 'domain-mapping-updated' ) . '</h4>';
+}
+
+/**
+ * [primary_domains_disabled_notice description]
+ *
+ * @return [type] [description]
+ */
+function primary_domains_disabled_salmon() {
+	echo '<h3 class="salmon">' . __( 'Primary domains are currently disabled.', 'domain-mapping-updated' ) . '</h3>';
 }
 
 /**
@@ -43,15 +52,6 @@ function dm_echo_default_updated_msg() {
 	echo "<div class='updated fade'><p>$msg</p></div>";
 }
 // add_action( 'dm_echo_updated_msg', 'dm_echo_default_updated_msg' );
-/**
- * [primary_domains_disabled_notice description]
- *
- * @return [type] [description]
- */
-function primary_domains_disabled_notice() {
-	echo '<h3 class="salmon">' . __( 'Primary domains are currently disabled.', 'domain-mapping-updated' ) . '</h3>';
-}
-
 /**
  * [dm_sunrise_warning description]
  *
