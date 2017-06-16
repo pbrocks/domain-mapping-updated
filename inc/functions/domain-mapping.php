@@ -111,18 +111,20 @@ function temp_enqueue_style() {
 		text-align: center;
 		width: 95%;
 	}
+	.container-inner > table > thead > tr > th {
+		text-align: center;
+	}
+	.container-padding {
+		width: 89%;
+		margin: 0 auto;
+	}
 	.salmon {
 		color: salmon;
 	}
 	.gray {
 		color: #a1a1a1;
 	}
-	.container-inner > table > thead > tr > th {
-		text-align: center;
-	}
-	.container-padding {
-		width: 85%;
-	}
+
 </style>
 <?php
 
@@ -223,7 +225,7 @@ function new_search_listed_domains() {
 		return false;
 	}
 
-	echo '<h3>' . __( '0ld Search Domains', 'domain-mapping-updated' ) . '</h3>';
+	echo '<h3>' . __( '0ld Search Domains', 'domain-mapping-updated' ) . '</h3><div class="container-padding">';
 	echo '<form method="POST">';
 	wp_nonce_field( 'domain_mapping' );
 	echo '<input type="hidden" name="action" value="search" />';
@@ -231,7 +233,7 @@ function new_search_listed_domains() {
 	echo _e( '0ld Domain:', 'domain-mapping-updated' );
 	echo " <input type='text' name='domain' value='' /></p>";
 	echo "<p><input type='submit' class='button-secondary' value='" . __( 'Search', 'domain-mapping-updated' ) . "' /></p>";
-	echo '</form><br>';
+	echo '</form><br></div>';
 }
 /**
  * [new_list_mapped_domains description]
@@ -262,7 +264,7 @@ function dm_edit_domain( $row = false ) {
 		$row->active = 1;
 	}
 
-	echo "<form method='POST'><input type='hidden' name='action' value='save' /><input type='hidden' name='orig_domain' value='" . esc_attr( $_POST['domain'] ) . "' />";
+	echo '<div class="container-padding"><form method="POST"><input type="hidden" name="action" value="save" /><input type="hidden" name="orig_domain" value="' . esc_attr( $_POST['domain'] ) . '" />';
 	wp_nonce_field( 'domain_mapping' );
 	echo "<table class='form-table'>\n";
 	echo '<tr><th>' . __( 'Site ID', 'domain-mapping-updated' ) . "</th><td><input type='text' name='blog_id' value='{$row->blog_id}' /></td></tr>\n";
@@ -281,7 +283,7 @@ function dm_edit_domain( $row = false ) {
 		// echo primary_domains_disabled_salmon();
 		// echo "<tr><td colspan='2'>" . primary_domains_disabled_salmon() . '</td></tr>';
 	// }
-	echo "<p><input type='submit' class='button-primary' value='" . __( 'Save', 'domain-mapping-updated' ) . "' /></p></form><br><br>";
+	echo "<p><input type='submit' class='button-primary' value='" . __( 'Save', 'domain-mapping-updated' ) . "' /></p></form><br><br></div>";
 }
 
 /**
@@ -308,7 +310,7 @@ function dm_domain_listing( $rows, $heading = '' ) {
 			echo "<tr><td><a href='" . add_query_arg(array(
 				'action' => 'editblog',
 				'id' => $row->blog_id,
-			), $edit_url) . "'>{$row->blog_id}</a></td><td><a href='http://{$row->domain}/'>{$row->domain}</a></td><td>";
+			), $edit_url) . "'>{$row->blog_id}</a></td><td><a href='//{$row->domain}/' target='_blank' >{$row->domain}</a></td><td>";
 			echo $row->active == 1 ? __( 'Yes', 'domain-mapping-updated' ) : __( 'No', 'domain-mapping-updated' );
 			echo "</td><td><form method='POST'><input type='hidden' name='action' value='edit' /><input type='hidden' name='domain' value='{$row->domain}' />";
 			wp_nonce_field( 'domain_mapping' );
@@ -357,7 +359,7 @@ function dm_admin_page_config() {
 
 	temp_enqueue_style();
 
-	echo '<div class="container-full"><div class="container-inner">';
+	echo '<div class="container-full"><div class="container-inner"><div class="container-padding">';
 
 	echo '<h3>' . __( 'Domain Mapping Configuration', 'domain-mapping-updated' ) . '</h3>';
 
@@ -366,7 +368,7 @@ function dm_admin_page_config() {
 	echo '<p>' . __( "As a super admin on this network you can set the IP address users need to point their DNS A records at <em>or</em> the domain to point CNAME record at. If you don't know what the IP address is, ping this blog to get it.", 'domain-mapping-updated' ) . '</p>';
 	echo '<p>' . __( 'The information you enter here will be shown to your users so they can configure their DNS correctly. It is for informational purposes only', 'domain-mapping-updated' ) . '</p>';
 
-	echo '</div><div class="container-left">';
+	echo '</div></div><div class="container-left">';
 
 	general_domain_mapping_settings();
 
@@ -424,7 +426,7 @@ function general_domain_mapping_settings() {
 
 	echo '<h3>' . __( 'Server Configuration', 'domain-mapping-updated' ) . '</h3>';
 
-	echo '<p>' . __( 'If you use round robin DNS or another load balancing technique with more than one IP, enter each address, separating them by commas.', 'domain-mapping-updated' ) . '</p>';
+	echo '<div class="container-padding"><p>' . __( 'If you use round robin DNS or another load balancing technique with more than one IP, enter each address, separating them by commas.', 'domain-mapping-updated' ) . '</p>';
 	_e( 'Server IP Address: ', 'domain-mapping-updated' );
 	echo "<input type='text' name='ipaddress' value='" . get_site_option( 'dm_ipaddress' ) . "' /><br>";
 
@@ -434,9 +436,9 @@ function general_domain_mapping_settings() {
 	_e( 'Server CNAME domain: ', 'domain-mapping-updated' );
 	echo "<input type='text' name='cname' value='" . get_site_option( 'dm_cname' ) . "' /> <br>( " . dm_idn_warning() . ')<br>';
 
-	echo '</div><div class="container-right">';
+	echo '</div></div><div class="container-right">';
 
-	echo '<h3>' . __( 'Domain Options', 'domain-mapping-updated' ) . '</h3>';
+	echo '<h3>' . __( 'Domain Options', 'domain-mapping-updated' ) . '</h3><div class="container-padding">';
 	echo "<ol><li><input type='checkbox' name='dm_remote_login' value='1' ";
 	echo get_site_option( 'dm_remote_login' ) == 1 ? "checked='checked'" : '';
 	echo ' /> ' . __( 'Remote Login', 'domain-mapping-updated' ) . '</li>';
@@ -454,7 +456,7 @@ function general_domain_mapping_settings() {
 	echo ' /> ' . __( 'Disable primary domain check. Sites will not redirect to one domain name. May cause duplicate content issues.', 'domain-mapping-updated' ) . '</li></ol>';
 	wp_nonce_field( 'domain_mapping' );
 	echo "<p><input class='button-primary' type='submit' value='" . __( 'Save', 'domain-mapping-updated' ) . "' /></p>";
-	echo '</form><br>';
+	echo '</form><br></div></div>';
 }
 
 /**
