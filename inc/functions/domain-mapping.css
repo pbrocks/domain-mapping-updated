@@ -1,0 +1,32 @@
+
+	#wpwrap {
+		background-color: aliceblue;
+	}
+	.container-full, .container-inner {
+		width: 100%;
+		clear:both;
+	}
+	.container-left, .container-right {
+		width: 50%;
+		float: left;
+	}
+	.container-inner {
+		border: 1px solid salmon;
+		clear:both;
+		padding: 1rem;
+		text-align: center;
+		width: 95%;
+	}
+	.container-inner > table > thead > tr > th {
+		text-align: center;
+	}
+	.container-padding {
+		width: 89%;
+		margin: 0 auto;
+	}
+	.salmon {
+		color: salmon;
+	}
+	.gray {
+		color: #a1a1a1;
+	}

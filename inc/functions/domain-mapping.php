@@ -10,6 +10,21 @@ function dm_text_domain() {
 }
 add_action( 'init', 'dm_text_domain' );
 
+// temp_enqueue_style
+/**
+ * [dm_enqueue_style description]
+ *
+ * @return [type] [description]
+ */
+function dm_enqueue_style( $hook ) {
+	$screen = get_current_screen();
+
+	if ( 'settings_page_dm_domains_admin' === $hook || 'settings_page_dm_admin_page' === $hook || 'tools_page_domainmapping' === $hook ) {
+		 wp_enqueue_style( 'domain-mapping', plugins_url( 'domain-mapping.css', __FILE__ ) );
+	}
+
+}
+add_action( 'admin_enqueue_scripts', 'dm_enqueue_style' );
 
 /**
  * [dm_add_pages description]
@@ -86,50 +101,7 @@ function maybe_create_db() {
 		}
 	}
 }
-/**
- * [temp_enqueue_style description]
- *
- * @return [type] [description]
- */
-function temp_enqueue_style() {
-	?>
-<style type="text/css">
-	#wpwrap {
-		background-color: aliceblue;
-	}
-	.container-full, .container-inner {
-		width: 100%;
-	}
-	.container-left, .container-right {
-		width: 50%;
-		float: left;
-	}
-	.container-inner {
-		border: 1px solid salmon;
-		clear:both;
-		padding: 1rem;
-		text-align: center;
-		width: 95%;
-	}
-	.container-inner > table > thead > tr > th {
-		text-align: center;
-	}
-	.container-padding {
-		width: 89%;
-		margin: 0 auto;
-	}
-	.salmon {
-		color: salmon;
-	}
-	.gray {
-		color: #a1a1a1;
-	}
 
-</style>
-<?php
-
-}
-// add_action( 'wp_head', 'temp_enqueue_style' );
 /**
  * [dm_domains_admin description]
  *
@@ -147,8 +119,6 @@ function dm_domains_admin() {
 	if ( '/' !== $current_site->path ) {
 		install_in_root_warning();
 	}
-
-	temp_enqueue_style();
 
 	echo '<h2>' . __( '0ld Adding/Editing Domains', 'domain-mapping-updated' ) . '</h2>';
 
@@ -356,9 +326,8 @@ function dm_admin_page() {
  * @return [type] [description]
  */
 function dm_admin_page_config() {
+	echo '<div class=wrap>';
 	echo '<h2>' . __( '0ld Configuring Domain Mapping', 'domain-mapping-updated' ) . '</h2>';
-
-	temp_enqueue_style();
 
 	echo '<div class="container-full"><div class="container-inner"><div class="container-padding">';
 
@@ -369,12 +338,10 @@ function dm_admin_page_config() {
 	echo '<p>' . __( "As a super admin on this network you can set the IP address users need to point their DNS A records at <em>or</em> the domain to point CNAME record at. If you don't know what the IP address is, ping this blog to get it.", 'domain-mapping-updated' ) . '</p>';
 	echo '<p>' . __( 'The information you enter here will be shown to your users so they can configure their DNS correctly. It is for informational purposes only', 'domain-mapping-updated' ) . '</p>';
 
-	echo '</div></div><div class="container-left">';
+	echo '</div></div>';
 
 	general_domain_mapping_settings();
 
-	// something_other();
-	echo '</div></div>';
 }
 
 function general_domain_mapping_settings() {
@@ -425,6 +392,7 @@ function general_domain_mapping_settings() {
 		}
 	}
 
+	echo '<div class="container-left">';
 	echo '<h3>' . __( 'Server Configuration', 'domain-mapping-updated' ) . '</h3>';
 
 	echo '<div class="container-padding"><p>' . __( 'If you use round robin DNS or another load balancing technique with more than one IP, enter each address, separating them by commas.', 'domain-mapping-updated' ) . '</p>';
@@ -435,17 +403,17 @@ function general_domain_mapping_settings() {
 	echo '<p>' . __( 'If you prefer the use of a CNAME record, you can set the domain here. This domain must be configured with an A record or ANAME pointing at an IP address. Visitors may experience problems if it is a CNAME of another domain.', 'domain-mapping-updated' ) . '</p>';
 	echo '<p>' . __( 'NOTE, this voids the use of any IP address set above', 'domain-mapping-updated' ) . '</p>';
 	_e( 'Server CNAME domain: ', 'domain-mapping-updated' );
-	echo "<input type='text' name='cname' value='" . get_site_option( 'dm_cname' ) . "' /> <br>( " . dm_idn_warning() . ')<br>';
+	echo "<input type='text' name='cname' value='" . get_site_option( 'dm_cname' ) . "' /> <br>" . dm_idn_warning() . '<br>';
 
 	echo '</div></div><div class="container-right">';
 
-	echo '<h3>' . __( 'Domain Options', 'domain-mapping-updated' ) . '</h3><div class="container-padding">';
-	echo "<ol><li><input type='checkbox' name='dm_remote_login' value='1' ";
+	echo '<h3>' . __( 'Domain Options', 'domain-mapping-updated' ) . '</h3>';
+	echo '<div class="container-padding"><ol><li><input type="checkbox" name="dm_remote_login" value="1" ';
 	echo get_site_option( 'dm_remote_login' ) == 1 ? "checked='checked'" : '';
 	echo ' /> ' . __( 'Remote Login', 'domain-mapping-updated' ) . '</li>';
 	echo "<li><input type='checkbox' name='permanent_redirect' value='1' ";
 	echo get_site_option( 'dm_301_redirect' ) == 1 ? "checked='checked'" : '';
-	echo ' /> ' . __( "Permanent redirect (better for your blogger's pagerank)", 'domain-mapping-updated' ) . '</li>';
+	echo ' /> ' . __( 'Permanent redirect (better for your blogger\'s pagerank)', 'domain-mapping-updated' ) . '</li>';
 	echo "<li><input type='checkbox' name='dm_user_settings' value='1' ";
 	echo get_site_option( 'dm_user_settings' ) == 1 ? "checked='checked'" : '';
 	echo ' /> ' . __( 'User domain mapping page', 'domain-mapping-updated' ) . '</li> ';
@@ -457,7 +425,8 @@ function general_domain_mapping_settings() {
 	echo ' /> ' . __( 'Disable primary domain check. Sites will not redirect to one domain name. May cause duplicate content issues.', 'domain-mapping-updated' ) . '</li></ol>';
 	wp_nonce_field( 'domain_mapping' );
 	echo "<p><input class='button-primary' type='submit' value='" . __( 'Save', 'domain-mapping-updated' ) . "' /></p>";
-	echo '</form><br></div>';
+	echo '</form>';
+	echo '<br><br><br><br></div></div>&nbsp;</div></div>';
 }
 
 /**
@@ -581,8 +550,6 @@ function dm_manage_page() {
 	}
 
 	dm_sunrise_warning();
-
-	temp_enqueue_style();
 
 	echo '<div class="wrap">';
 

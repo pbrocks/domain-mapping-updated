@@ -1,5 +1,48 @@
 <?php
+/**
+ * [temp_enqueue_style description]
+ *
+ * @return [type] [description]
+ */
+function temp_enqueue_style() {
+	?>
+<style type="text/css">
+	#wpwrap {
+		background-color: aliceblue;
+	}
+	.container-full, .container-inner {
+		width: 100%;
+		clear:both;
+	}
+	.container-left, .container-right {
+		width: 50%;
+		float: left;
+	}
+	.container-inner {
+		border: 1px solid salmon;
+		clear:both;
+		padding: 1rem;
+		text-align: center;
+		width: 95%;
+	}
+	.container-inner > table > thead > tr > th {
+		text-align: center;
+	}
+	.container-padding {
+		width: 89%;
+		margin: 0 auto;
+	}
+	.salmon {
+		color: salmon;
+	}
+	.gray {
+		color: #a1a1a1;
+	}
 
+</style>
+<?php
+
+}
 /**
  * [primary_disabled description]
  *
@@ -116,5 +159,5 @@ function install_in_root_warning() {
  * @return [type] [description]
  */
 function dm_idn_warning() {
-	return sprintf( __( ' International Domain Names should be in <a href="%s">punycode</a> format. ', 'domain-mapping-updated' ), 'http://api.webnic.cc/idnconversion.html' );
+	return sprintf( __( '<span class="gray">International Domain Names should be in <a href="%s">punycode</a> format.</span>', 'domain-mapping-updated' ), 'http://api.webnic.cc/idnconversion.html' );
 }
