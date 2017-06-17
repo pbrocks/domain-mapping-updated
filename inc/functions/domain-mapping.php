@@ -17,7 +17,6 @@ add_action( 'init', 'dm_text_domain' );
  * @return [type] [description]
  */
 function dm_enqueue_style( $hook ) {
-	$screen = get_current_screen();
 
 	if ( 'settings_page_dm_domains_admin' === $hook || 'settings_page_dm_admin_page' === $hook || 'tools_page_domainmapping' === $hook ) {
 		 wp_enqueue_style( 'domain-mapping', plugins_url( 'domain-mapping.css', __FILE__ ) );
@@ -112,7 +111,7 @@ function dm_domains_admin() {
 	if ( false === dm_site_admin() ) {
 		return false;
 	}
-
+	echo '<div class="wrap">';
 	dm_sunrise_warning();
 
 	if ( '/' !== $current_site->path ) {
@@ -267,8 +266,8 @@ function dm_domain_listing( $rows, $heading = '' ) {
 	if ( $rows ) {
 		if ( file_exists( ABSPATH . 'wp-admin/network/site-info.php' ) ) {
 			$edit_url = network_admin_url( 'site-info.php' );
-		} elseif ( file_exists( ABSPATH . 'wp-admin/ms-sites.php' ) ) {
-			$edit_url = admin_url( 'ms-sites.php' );
+		} elseif ( file_exists( ABSPATH . 'wp-admin/sites.php' ) ) {
+			$edit_url = admin_url( 'sites.php' );
 		} else {
 			$edit_url = admin_url( 'wpmu-blogs.php' );
 		}
@@ -277,7 +276,7 @@ function dm_domain_listing( $rows, $heading = '' ) {
 		}
 		echo '<table class="widefat" cellspacing="0"><thead><tr><th>' . __( 'Site ID', 'domain-mapping-updated' ) . '</th><th>' . __( 'Domain', 'domain-mapping-updated' ) . '</th><th>' . __( 'Primary', 'domain-mapping-updated' ) . '</th><th>' . __( 'Edit', 'domain-mapping-updated' ) . '</th><th>' . __( 'Delete', 'domain-mapping-updated' ) . '</th></tr></thead><tbody>';
 		foreach ( $rows as $row ) {
-			echo "<tr><td><a href='" . add_query_arg(array(
+			echo "<tr><td><a href='" . add_query_arg( array(
 				'action' => 'editblog',
 				'id' => $row->blog_id,
 			), $edit_url) . "'>{$row->blog_id}</a></td><td><a href='//{$row->domain}/' target='_blank' >{$row->domain}</a></td><td>";
@@ -293,6 +292,7 @@ function dm_domain_listing( $rows, $heading = '' ) {
 		if ( '1' === get_site_option( 'dm_no_primary_domain' ) ) {
 			primary_domains_disabled_salmon();
 		}
+		echo '</div>';
 	}
 }
 
@@ -592,7 +592,7 @@ function dm_manage_page() {
 			'active' => 0,
 		);
 
-		echo '<h3>' . __( 'Active domains on this blog', 'domain-mapping-updated' ) . '</h3>';
+		echo '<h3>' . __( 'Active domains on this blog ' . __FUNCTION__, 'domain-mapping-updated' ) . '</h3>';
 		echo '<div class="container-padding"><form method="POST">';
 		echo '<table><tr><th>' . __( 'Primary', 'domain-mapping-updated' ) . '</th><th>' . __( 'Domain', 'domain-mapping-updated' ) . '</th><th>' . __( 'Delete', 'domain-mapping-updated' ) . "</th></tr>\n";
 		$primary_found = 0;
