@@ -29,17 +29,20 @@ class Domain_Mapping {
 	 */
 	public static function init() {
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'domain_mapping_css' ) );
-		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'domain_mapping_css1' ) );
-		// add_action( 'admin_menu', array( __CLASS__, 'domain_mapping_menu' ) );
-		// add_action( 'network_admin_menu', array( __CLASS__, 'domain_mapping_network_menu' ) );
+		add_action( 'admin_menu', array( __CLASS__, 'domain_mapping_menu' ) );
+		add_action( 'network_admin_menu', array( __CLASS__, 'domain_mapping_network_menu' ) );
 		add_action( 'network_admin_menu', array( __CLASS__, 'domain_mapping_network_menus' ) );
 		add_action( 'admin_menu', array( __CLASS__, 'domain_mapping_subsite_menus' ) );
-
+		// add_action( 'admin_menu', array( __CLASS__, 'diagnositc_submenu_page' ) );
+		// add_action( 'init', array( __CLASS__, 'domain_mapping_filters' ) );
 		add_action( 'manage_sites_custom_column', array( __CLASS__, 'add_column_for_aliases' ), 10, 2 );
 		add_action( 'manage_blogs_custom_column', array( __CLASS__, 'add_column_for_aliases' ), 10, 2 );
 		add_action( 'admin_footer', array( __CLASS__, 'set_column_width' ) );
 		add_filter( 'wpmu_blogs_columns', array( __CLASS__, 'add_domain_mapping_column_label' ) );
-
+		// add_action( 'delete_blog', array( __CLASS__, 'delete_blog_domain_mapping', 1, 2 ) );
+		// add_action( 'template_redirect', array( __CLASS__, 'redirect_to_mapped_domain' ) );
+		// add_action( 'dm_echo_updated_msg', array( __CLASS__, 'dm_echo_default_updated_msg' ) );
+		// add_action( 'admin_init', array( __CLASS__, 'dm_redirect_admin' ) );
 	}
 	/**
 	 * [domain_mapping_filters description]
@@ -52,15 +55,31 @@ class Domain_Mapping {
 		}
 	}
 
-	/**
-	 * [domain_mapping_filters description]
-	 *
-	 * @return [type] [description]
-	 */
-	public static function domain_mapping_css1() {
-		$screen = get_current_screen();
-		if ( 'mapping-aliases_page_domain-mapping-admin-network' === $screen->id ) {
-			wp_enqueue_style( 'domain-mapping', plugins_url( '../css/domain-mapping.css', __FILE__ ) );
+	public static function domain_mapping_filters() {
+		if ( defined( 'DOMAIN_MAPPING' ) ) {
+			add_filter( 'plugins_url', array( __CLASS__, 'domain_mapping_plugins_uri', 1 ) );
+			add_filter( 'theme_root_uri', array( __CLASS__, 'domain_mapping_themes_uri', 1 ) );
+			add_filter( 'pre_option_siteurl', array( __CLASS__, 'domain_mapping_siteurl' ) );
+			add_filter( 'pre_option_home', array( __CLASS__, 'domain_mapping_siteurl' ) );
+			add_filter( 'the_content', array( __CLASS__, 'domain_mapping_post_content' ) );
+			add_action( 'wp_head', array( __CLASS__, 'remote_login_js_loader' ) );
+			add_action( 'login_head', array( __CLASS__, 'redirect_login_to_orig' ) );
+			add_action( 'wp_logout', array( __CLASS__, 'remote_logout_loader', 9999 ) );
+			add_action( 'template_redirect', array( __CLASS__, 'redirect_to_mapped_domain' ) );
+			add_filter( 'stylesheet_uri', array( __CLASS__, 'domain_mapping_post_content' ) );
+			add_filter( 'stylesheet_directory', array( __CLASS__, 'domain_mapping_post_content' ) );
+			add_filter( 'stylesheet_directory_uri', array( __CLASS__, 'domain_mapping_post_content' ) );
+			add_filter( 'template_directory', array( __CLASS__, 'domain_mapping_post_content' ) );
+			add_filter( 'template_directory_uri', array( __CLASS__, 'domain_mapping_post_content' ) );
+			add_filter( 'plugins_url', array( __CLASS__, 'domain_mapping_post_content' ) );
+		} else {
+			// add_filter( 'admin_url', array( __CLASS__, 'domain_mapping_adminurl', 10, 3 ) );
+		}
+		if ( isset( $_GET['dm'] ) ) {
+			add_action( 'template_redirect', 'remote_login_js' );
+		}
+		if ( isset( $_GET['page'] ) && $_GET['page'] == 'domainmapping' ) {
+			add_action( 'admin_init', 'dm_handle_actions' );
 		}
 	}
 
@@ -93,6 +112,72 @@ class Domain_Mapping {
 
 		if ( get_site_option( 'dm_user_settings' ) && $current_site->blog_id != $wpdb->blogid && ! self::dm_sunrise_warning( false ) ) {
 			add_management_page( __( 'Domain Mapping', 'cmpbl-domain-mapping' ), __( 'Domain Mapping', 'cmpbl-domain-mapping' ), 'manage_options', 'domainmapping', array( __CLASS__, 'dm_manage_page' ) );
+		}
+	}
+
+	// Default Messages for the users Domain Mapping management page
+	// This can now be replaced by using:
+	// remove_action('dm_echo_updated_msg','dm_echo_default_updated_msg');
+	// add_action('dm_echo_updated_msg','my_custom_updated_msg_function');
+	/**
+	 * Do we need to set a text domain?
+	 */
+	public static function dm_echo_default_updated_msg() {
+		switch ( $_GET['updated'] ) {
+			case 'add':
+				$msg = __( 'New domain added.', 'cmpbl-domain-mapping' );
+				break;
+			case 'exists':
+				$msg = __( 'New domain already exists.', 'cmpbl-domain-mapping' );
+				break;
+			case 'primary':
+				$msg = __( 'New primary domain.', 'cmpbl-domain-mapping' );
+				break;
+			case 'del':
+				$msg = __( 'Domain deleted.', 'cmpbl-domain-mapping' );
+				break;
+		}
+		echo "<div class='updated fade'><p>$msg</p></div>";
+	}
+
+
+	/**
+	 * Do we need to set a text domain?
+	 */
+	public static function maybe_create_db() {
+		global $wpdb;
+
+		self::get_dm_hash(); // initialise the remote login hash
+
+		$wpdb->dmtable = $wpdb->base_prefix . 'domain_mapping';
+		$wpdb->dmtablelogins = $wpdb->base_prefix . 'domain_mapping_logins';
+		if ( self::dm_site_admin() ) {
+			$created = 0;
+			if ( $wpdb->get_var( "SHOW TABLES LIKE '{$wpdb->dmtable}'" ) != $wpdb->dmtable ) {
+				$wpdb->query("CREATE TABLE IF NOT EXISTS `{$wpdb->dmtable}` (
+					`id` bigint(20) NOT NULL auto_increment,
+					`blog_id` bigint(20) NOT NULL,
+					`domain` varchar(255) NOT NULL,
+					`active` tinyint(4) default '1',
+					PRIMARY KEY  (`id`),
+					KEY `blog_id` (`blog_id`,`domain`,`active`)
+				);");
+				$created = 1;
+			}
+			if ( $wpdb->get_var( "SHOW TABLES LIKE '{$wpdb->dmtablelogins}'" ) != $wpdb->dmtablelogins ) {
+				$wpdb->query("CREATE TABLE IF NOT EXISTS `{$wpdb->dmtablelogins}` (
+					`id` varchar(32) NOT NULL,
+					`user_id` bigint(20) NOT NULL,
+					`blog_id` bigint(20) NOT NULL,
+					`t` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+					PRIMARY KEY  (`id`)
+				);");
+				$created = 1;
+			}
+			if ( $created ) {
+				?> <div id="message" class="updated fade"><p><strong><?php _e( 'Domain mapping database table created.', 'cmpbl-domain-mapping' ) ?></strong></p></div> <?php
+
+			}
 		}
 	}
 
@@ -178,6 +263,168 @@ class Domain_Mapping {
 		echo '<p>' . sprintf( __( '<strong>Note:</strong> %s', 'cmpbl-domain-mapping' ), self::dm_idn_warning() ) . '</p>';
 	}
 
+
+	/**
+	 * Do we need to set a text domain?
+	 */
+	public static function dm_edit_domain( $row = false ) {
+		if ( is_object( $row ) ) {
+			echo '<h3>' . __( 'Edit Domain', 'cmpbl-domain-mapping' ) . '</h3>';
+		} else {
+			echo '<h3>' . __( 'New Domain', 'cmpbl-domain-mapping' ) . '</h3>';
+			// $row = new stdClass();
+			$row->blog_id = '';
+			$row->domain = '';
+			$_POST['domain'] = '';
+			$row->active = 1;
+		}
+
+		echo "<form method='POST'><input type='hidden' name='action' value='save' /><input type='hidden' name='orig_domain' value='" . esc_attr( $_POST['domain'] ) . "' />";
+		wp_nonce_field( 'domain_mapping' );
+		echo "<table class='form-table'>\n";
+		echo '<tr><th>' . __( 'Site ID', 'cmpbl-domain-mapping' ) . "</th><td><input type='text' name='blog_id' value='{$row->blog_id}' /></td></tr>\n";
+		echo '<tr><th>' . __( 'Domain', 'cmpbl-domain-mapping' ) . "</th><td><input type='text' name='domain' value='{$row->domain}' /></td></tr>\n";
+		echo '<tr><th>' . __( 'Primary', 'cmpbl-domain-mapping' ) . "</th><td><input type='checkbox' name='active' value='1' ";
+		echo $row->active == 1 ? 'checked=1 ' : ' ';
+		echo "/></td></tr>\n";
+		if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
+			echo "<tr><td colspan='2'>" . __( '<strong>Warning!</strong> Primary domains are currently disabled.', 'cmpbl-domain-mapping' ) . '</td></tr>';
+		}
+		echo '</table>';
+		echo "<p><input type='submit' class='button-primary' value='" . __( 'Save', 'cmpbl-domain-mapping' ) . "' /></p></form><br><br>";
+	}
+
+	/**
+	 * Do we need to set a text domain?
+	 */
+	public static function dm_domain_listing( $rows, $heading = '' ) {
+		if ( $rows ) {
+			if ( file_exists( ABSPATH . 'wp-admin/network/site-info.php' ) ) {
+				$edit_url = network_admin_url( 'site-info.php' );
+			} elseif ( file_exists( ABSPATH . 'wp-admin/ms-sites.php' ) ) {
+				$edit_url = admin_url( 'ms-sites.php' );
+			} else {
+				$edit_url = admin_url( 'wpmu-blogs.php' );
+			}
+			if ( $heading != '' ) {
+				echo "<h3>$heading</h3>";
+			}
+			echo '<table class="widefat" cellspacing="0"><thead><tr><th>' . __( 'Site ID', 'cmpbl-domain-mapping' ) . '</th><th>' . __( 'Domain', 'cmpbl-domain-mapping' ) . '</th><th>' . __( 'Primary', 'cmpbl-domain-mapping' ) . '</th><th>' . __( 'Edit', 'cmpbl-domain-mapping' ) . '</th><th>' . __( 'Delete', 'cmpbl-domain-mapping' ) . '</th></tr></thead><tbody>';
+			foreach ( $rows as $row ) {
+				echo "<tr><td><a href='" . add_query_arg(array(
+					'action' => 'editblog',
+					'id' => $row->blog_id,
+				), $edit_url) . "'>{$row->blog_id}</a></td><td><a href='http://{$row->domain}/'>{$row->domain}</a></td><td>";
+				echo $row->active == 1 ? __( 'Yes', 'cmpbl-domain-mapping' ) : __( 'No', 'cmpbl-domain-mapping' );
+				echo "</td><td><form method='POST'><input type='hidden' name='action' value='edit' /><input type='hidden' name='domain' value='{$row->domain}' />";
+				wp_nonce_field( 'domain_mapping' );
+				echo "<input type='submit' class='button-secondary' value='" . __( 'Edit', 'cmpbl-domain-mapping' ) . "' /></form></td><td><form method='POST'><input type='hidden' name='action' value='del' /><input type='hidden' name='domain' value='{$row->domain}' />";
+				wp_nonce_field( 'domain_mapping' );
+				echo "<input type='submit' class='button-secondary' value='" . __( 'Del', 'cmpbl-domain-mapping' ) . "' /></form>";
+				echo '</td></tr>';
+			}
+			echo '</table>';
+			if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
+				echo '<p>' . __( '<strong>Warning!</strong> Primary domains are currently disabled.', 'cmpbl-domain-mapping' ) . '</p>';
+			}
+		}
+	}
+
+
+	/**
+	 * Do we need to set a text domain?
+	 */
+	public static function dm_admin_page() {
+		global $wpdb, $current_site;
+		if ( false == self::dm_site_admin() ) { // paranoid? moi?
+			return false;
+		}
+
+		self::dm_sunrise_warning();
+		self::maybe_create_db();
+
+		if ( $current_site->path != '/' ) {
+			wp_die( sprintf( __( '<strong>Warning!</strong> This plugin will only work if WordPress is installed in the root directory of your webserver. It is currently installed in &#8217;%s&#8217;.', 'cmpbl-domain-mapping' ), $current_site->path ) );
+		}
+
+		// set up some defaults
+		if ( get_site_option( 'dm_remote_login', 'NA' ) == 'NA' ) {
+			add_site_option( 'dm_remote_login', 1 );
+		}
+		if ( get_site_option( 'dm_redirect_admin', 'NA' ) == 'NA' ) {
+			add_site_option( 'dm_redirect_admin', 1 );
+		}
+		if ( get_site_option( 'dm_user_settings', 'NA' ) == 'NA' ) {
+			add_site_option( 'dm_user_settings', 1 );
+		}
+
+		if ( ! empty( $_POST['action'] ) ) {
+			check_admin_referer( 'domain_mapping' );
+			if ( $_POST['action'] == 'update' ) {
+				$ipok = true;
+				$ipaddresses = explode( ',', $_POST['ipaddress'] );
+				foreach ( $ipaddresses as $address ) {
+					if ( ($ip = trim( $address )) && ! preg_match( '|^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$|', $ip ) ) {
+						$ipok = false;
+						break;
+					}
+				}
+				if ( $ipok ) {
+					update_site_option( 'dm_ipaddress', $_POST['ipaddress'] );
+				}
+				if ( intval( $_POST['always_redirect_admin'] ) == 0 ) {
+					$_POST['dm_remote_login'] = 0; // disable remote login if redirecting to mapped domain
+				}
+				update_site_option( 'dm_remote_login', intval( $_POST['dm_remote_login'] ) );
+				if ( ! preg_match( '/(--|\.\.)/', $_POST['cname'] ) && preg_match( '|^([a-zA-Z0-9-\.])+$|', $_POST['cname'] ) ) {
+					update_site_option( 'dm_cname', stripslashes( $_POST['cname'] ) );
+				} else {
+					update_site_option( 'dm_cname', '' );
+				}
+				update_site_option( 'dm_301_redirect', isset( $_POST['permanent_redirect'] ) ? intval( $_POST['permanent_redirect'] ) : 0 );
+				update_site_option( 'dm_redirect_admin', isset( $_POST['always_redirect_admin'] ) ? intval( $_POST['always_redirect_admin'] ) : 0 );
+				update_site_option( 'dm_user_settings', isset( $_POST['dm_user_settings'] ) ? intval( $_POST['dm_user_settings'] ) : 0 );
+				update_site_option( 'dm_no_primary_domain', isset( $_POST['dm_no_primary_domain'] ) ? intval( $_POST['dm_no_primary_domain'] ) : 0 );
+			}
+		}
+
+		echo '<h3>' . __( 'Domain Mapping Configuration', 'cmpbl-domain-mapping' ) . '</h3>';
+		echo '<form method="POST">';
+		echo '<input type="hidden" name="action" value="update" />';
+		echo '<p>' . __( "As a super admin on this network you can set the IP address users need to point their DNS A records at <em>or</em> the domain to point CNAME record at. If you don't know what the IP address is, ping this blog to get it.", 'cmpbl-domain-mapping' ) . '</p>';
+		echo '<p>' . __( 'If you use round robin DNS or another load balancing technique with more than one IP, enter each address, separating them by commas.', 'cmpbl-domain-mapping' ) . '</p>';
+		_e( 'Server IP Address: ', 'cmpbl-domain-mapping' );
+		echo "<input type='text' name='ipaddress' value='" . get_site_option( 'dm_ipaddress' ) . "' /><br>";
+
+		// Using a CNAME is a safer method than using IP adresses for some people (IMHO)
+		echo '<p>' . __( 'If you prefer the use of a CNAME record, you can set the domain here. This domain must be configured with an A record or ANAME pointing at an IP address. Visitors may experience problems if it is a CNAME of another domain.', 'cmpbl-domain-mapping' ) . '</p>';
+		echo '<p>' . __( 'NOTE, this voids the use of any IP address set above', 'cmpbl-domain-mapping' ) . '</p>';
+		_e( 'Server CNAME domain: ', 'cmpbl-domain-mapping' );
+		echo "<input type='text' name='cname' value='" . get_site_option( 'dm_cname' ) . "' /> (" . self::dm_idn_warning() . ')<br>';
+		echo '<p>' . __( 'The information you enter here will be shown to your users so they can configure their DNS correctly. It is for informational purposes only', 'cmpbl-domain-mapping' ) . '</p>';
+
+		echo '<h3>' . __( 'Domain Options', 'cmpbl-domain-mapping' ) . '</h3>';
+		echo "<ol><li><input type='checkbox' name='dm_remote_login' value='1' ";
+		echo get_site_option( 'dm_remote_login' ) == 1 ? "checked='checked'" : '';
+		echo ' /> ' . __( 'Remote Login', 'cmpbl-domain-mapping' ) . '</li>';
+		echo "<li><input type='checkbox' name='permanent_redirect' value='1' ";
+		echo get_site_option( 'dm_301_redirect' ) == 1 ? "checked='checked'" : '';
+		echo ' /> ' . __( "Permanent redirect (better for your blogger's pagerank)", 'cmpbl-domain-mapping' ) . '</li>';
+		echo "<li><input type='checkbox' name='dm_user_settings' value='1' ";
+		echo get_site_option( 'dm_user_settings' ) == 1 ? "checked='checked'" : '';
+		echo ' /> ' . __( 'User domain mapping page', 'cmpbl-domain-mapping' ) . '</li> ';
+		echo "<li><input type='checkbox' name='always_redirect_admin' value='1' ";
+		echo get_site_option( 'dm_redirect_admin' ) == 1 ? "checked='checked'" : '';
+		echo ' /> ' . __( "Redirect administration pages to site's original domain (remote login disabled if this redirect is disabled)", 'cmpbl-domain-mapping' ) . '</li>';
+		echo "<li><input type='checkbox' name='dm_no_primary_domain' value='1' ";
+		echo get_site_option( 'dm_no_primary_domain' ) == 1 ? "checked='checked'" : '';
+		echo ' /> ' . __( 'Disable primary domain check. Sites will not redirect to one domain name. May cause duplicate content issues.', 'cmpbl-domain-mapping' ) . '</li></ol>';
+		wp_nonce_field( 'domain_mapping' );
+		echo "<p><input class='button-primary' type='submit' value='" . __( 'Save', 'cmpbl-domain-mapping' ) . "' /></p>";
+		echo '</form><br>';
+	}
+
+
 	/**
 	 * Do we need to set a text domain?
 	 */
@@ -240,6 +487,47 @@ class Domain_Mapping {
 			exit;
 		}// End if().
 	}
+
+
+	/**
+	 * Do we need to set a text domain?
+	 */
+	public static function dm_sunrise_warning( $die = true ) {
+		if ( ! file_exists( WP_CONTENT_DIR . '/sunrise.php' ) ) {
+			if ( ! $die ) {
+				return true;
+			}
+
+			if ( self::dm_site_admin() ) {
+				wp_die( sprintf( __( 'Please copy sunrise.php to %1\$s/sunrise.php and ensure the SUNRISE definition is in %2\$swp-config.php', 'cmpbl-domain-mapping' ), WP_CONTENT_DIR, ABSPATH ) );
+			} else {
+				wp_die( __( 'This plugin has not been configured correctly yet.', 'cmpbl-domain-mapping' ) );
+			}
+		} elseif ( ! defined( 'SUNRISE' ) ) {
+			if ( ! $die ) {
+				return true;
+			}
+
+			if ( self::dm_site_admin() ) {
+				wp_die( sprintf( __( "Please uncomment the line <em>define( 'SUNRISE', 'on' );</em> or add it to your %swp-config.php", 'cmpbl-domain-mapping' ), ABSPATH ) );
+			} else {
+				wp_die( __( 'This plugin has not been configured correctly yet.', 'cmpbl-domain-mapping' ) );
+			}
+		} elseif ( ! defined( 'SUNRISE_LOADED' ) ) {
+			if ( ! $die ) {
+				return true;
+			}
+
+			if ( self::dm_site_admin() ) {
+				wp_die( sprintf( __( "Please edit your %swp-config.php and move the line <em>define( 'SUNRISE', 'on' );</em> above the last require_once() in that file or make sure you updated sunrise.php.", 'cmpbl-domain-mapping' ), ABSPATH ) );
+			} else {
+				wp_die( __( 'This plugin has not been configured correctly yet.', 'cmpbl-domain-mapping' ) );
+			}
+		}
+		return false;
+	}
+
+
 
 	/**
 	 * Do we need to set a text domain?
@@ -347,6 +635,182 @@ if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
 	/**
 	 * Do we need to set a text domain?
 	 */
+	public static function domain_mapping_siteurl( $setting ) {
+		global $wpdb, $current_blog;
+		$setting = 'http://domain.maap/';
+		return $setting;
+	}
+
+
+	/**
+	 * Do we need to set a text domain?
+	 */
+	public static function domain_mapping_siteurl_old( $setting ) {
+		global $wpdb, $current_blog;
+
+		// To reduce the number of database queries, save the results the first time we encounter each blog ID.
+		static $return_url = array();
+
+		$wpdb->dmtable = $wpdb->base_prefix . 'domain_mapping';
+
+		if ( ! isset( $return_url[ $wpdb->blogid ] ) ) {
+			$s = $wpdb->suppress_errors();
+
+			if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
+				// RMURPHy Update to allow hosting both sub-domains and sub-directories.
+				global $override_domain;
+				if ( isset( $override_domain ) ) {
+					$domain = $override_domain;
+				} else {
+					$query = $wpdb->prepare( "SELECT domain FROM {$wpdb->dmtable} WHERE blog_id = %d AND domain = %s LIMIT 1", $wpdb->blogid, $_SERVER['HTTP_HOST'] );
+					$domain = $wpdb->get_var(
+						$wpdb->prepare( "SELECT domain FROM {$wpdb->dmtable} WHERE blog_id = %d AND domain = %s LIMIT 1", $wpdb->blogid, $_SERVER['HTTP_HOST'] )
+					);
+				}
+				// RMURPHY End Update
+				if ( null == $domain ) {
+					$return_url[ $wpdb->blogid ] = untrailingslashit( self::get_original_url( 'siteurl' ) );
+					return $return_url[ $wpdb->blogid ];
+				}
+			} else {
+				// RMURPHY Update to allow hosting both sub-domains and sub-directories
+				global $override_domain;
+				if ( isset( $override_domain ) ) {
+					$domain = $override_domain;
+				} else {
+					// get primary domain, if we don't have one then return original url.
+					$domain = $wpdb->get_var(
+						$wpdb->prepare( 'SELECT domain FROM %s WHERE blog_id = %d AND active = 1 LIMIT 1', $wpdb->dmtable, $wpdb->blogid )
+					);
+				}
+				// RMURPHY End Update.
+				if ( null == $domain ) {
+					$return_url[ $wpdb->blogid ] = untrailingslashit( self::get_original_url( 'siteurl' ) );
+					return $return_url[ $wpdb->blogid ];
+				}
+			}// End if().
+
+			$wpdb->suppress_errors( $s );
+			$protocol = is_ssl() ? 'https://' : 'http://';
+			if ( $domain ) {
+				$return_url[ $wpdb->blogid ] = untrailingslashit( $protocol . $domain );
+				$setting = $return_url[ $wpdb->blogid ];
+			} else {
+				$return_url[ $wpdb->blogid ] = false;
+			}
+		} elseif ( $return_url[ $wpdb->blogid ] !== false ) {
+			$setting = $return_url[ $wpdb->blogid ];
+		}// End if().
+
+		return $setting;
+	}
+
+	/**
+	 * Do we need to set a text domain?
+	 * url is siteurl or home
+	 */
+	public static function get_original_url( $url, $blog_id = 0 ) {
+		global $wpdb;
+
+		if ( $blog_id != 0 ) {
+			$id = $blog_id;
+		} else {
+			$id = $wpdb->blogid;
+		}
+
+		static $orig_urls = array();
+		if ( ! isset( $orig_urls[ $id ] ) ) {
+			if ( defined( 'DOMAIN_MAPPING' ) ) {
+				remove_filter( 'pre_option_' . $url, 'domain_mapping_' . $url );
+			}
+			if ( $blog_id == 0 ) {
+				$orig_url = get_option( $url );
+			} else {
+				$orig_url = get_blog_option( $blog_id, $url );
+			}
+			if ( is_ssl() ) {
+				$orig_url = str_replace( 'http://', 'https://', $orig_url );
+			} else {
+				$orig_url = str_replace( 'https://', 'http://', $orig_url );
+			}
+			if ( $blog_id == 0 ) {
+				$orig_urls[ $wpdb->blogid ] = $orig_url;
+			} else {
+				$orig_urls[ $blog_id ] = $orig_url;
+			}
+			if ( defined( 'DOMAIN_MAPPING' ) ) {
+				// array( __CLASS__, .
+				add_filter( 'pre_option_' . $url, 'domain_mapping_' . $url );
+			}
+		}
+		return $orig_urls[ $id ];
+	}
+
+	/**
+	 * Do we need to set a text domain?
+	 */
+	public static function domain_mapping_adminurl( $url, $path, $blog_id = 0 ) {
+		$index = strpos( $url, '/wp-admin' );
+		if ( $index !== false ) {
+			$url = self::get_original_url( 'siteurl', $blog_id ) . substr( $url, $index );
+
+			// make sure admin_url is ssl if current page is ssl, or admin ssl is forced
+			if ( (is_ssl() || force_ssl_admin()) && 0 === strpos( $url, 'http://' ) ) {
+				$url = 'https://' . substr( $url, 7 );
+			}
+		}
+		return $url;
+	}
+
+
+	/**
+	 * Do we need to set a text domain?
+	 */
+	public static function domain_mapping_post_content( $post_content ) {
+		global $wpdb;
+
+		$orig_url = self::get_original_url( 'siteurl' );
+
+		$url = self::domain_mapping_siteurl( 'NA' );
+		if ( $url == 'NA' ) {
+			return $post_content;
+		}
+		return str_replace( $orig_url, $url, $post_content );
+	}
+
+
+	/**
+	 * Do we need to set a text domain?
+	 */
+	public static function dm_redirect_admin() {
+		// don't redirect admin ajax calls
+		if ( strpos( $_SERVER['REQUEST_URI'], 'wp-admin/admin-ajax.php' ) !== false ) {
+			return;
+		}
+
+		if ( get_site_option( 'dm_redirect_admin' ) ) {
+			// redirect mapped domain admin page to original url
+			$url = self::get_original_url( 'siteurl' );
+			if ( false === strpos( $url, $_SERVER['HTTP_HOST'] ) ) {
+				wp_redirect( untrailingslashit( $url ) . $_SERVER['REQUEST_URI'] );
+				exit;
+			}
+		} else {
+			global $current_blog;
+			// redirect original url to primary domain wp-admin/ - remote login is disabled!
+			$url = self::domain_mapping_siteurl( false );
+			$request_uri = str_replace( $current_blog->path, '/', $_SERVER['REQUEST_URI'] );
+			if ( false === strpos( $url, $_SERVER['HTTP_HOST'] ) ) {
+				wp_redirect( str_replace( '//wp-admin', '/wp-admin', trailingslashit( $url ) . $request_uri ) );
+				exit;
+			}
+		}
+	}
+
+
+	/**
+	 * Do we need to set a text domain?
+	 */
 	public static function redirect_login_to_orig() {
 		if ( ! get_site_option( 'dm_remote_login' ) || $_GET['action'] == 'logout' || isset( $_GET['loggedout'] ) ) {
 			return false;
@@ -422,6 +886,19 @@ if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
 			header( "Location: {$url}{$_SERVER[ 'REQUEST_URI' ]}", true, $redirect );
 			exit;
 		}
+	}
+
+
+	/**
+	 * Do we need to set a text domain?
+	 */
+	public static function get_dm_hash() {
+		$remote_login_hash = get_site_option( 'dm_hash' );
+		if ( null == $remote_login_hash ) {
+			$remote_login_hash = md5( time() );
+			update_site_option( 'dm_hash', $remote_login_hash );
+		}
+		return $remote_login_hash;
 	}
 
 
@@ -585,7 +1062,7 @@ if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
 	}
 
 	public static function domain_mapping_menu() {
-		add_menu_page( 'Mapping Aliases', 'Mapping Aliases', 'manage_options', 'map-your-domain.php', array( __CLASS__, 'main_dubdomain_mapping_page' ), 'dashicons-networking', 9 );
+		add_menu_page( 'Mapping Aliases', 'Mapping Aliases', 'manage_options', 'map-your-domain.php', array( __CLASS__, 'main_domain_mapping_page' ), 'dashicons-networking', 9 );
 	}
 
 	/**
@@ -594,17 +1071,13 @@ if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
 	 * csc.
 	 */
 	public static function domain_mapping_subsite_menus() {
-		add_menu_page( 'Mapping Aliases', 'Mapping Aliases', 'manage_options', 'map-your-domain1.php', array( __CLASS__, 'main_subdomain_mapping_page' ), 'dashicons-networking', 9 );
-		// add_submenu_page( 'map-your-domain.php', 'Sub Domain Mapping', 'Sub Domain Mapping', 'manage_options', 'dm-sub-admin-page', array( __CLASS__, 'network_mapping_configuration' ) );
-		// add_submenu_page( 'map-your-domain.php', 'Sub Domains', 'Sub Domains', 'manage_options', 'dm_domains_admin', array( __CLASS__, 'dm_domains_admin' ) );
+		add_submenu_page( 'map-your-domain.php', 'Domain Mapping', 'Domain Mapping', 'manage_options', 'dm_admin_page', array( __CLASS__, 'dm_admin_page' ) );
+		add_submenu_page( 'map-your-domain.php', 'Mapt Domains', 'Mapt Domains', 'manage_options', 'dm_domains_admin', array( __CLASS__, 'dm_domains_admin' ) );
 	}
 
-	public static function network_mapping_configuration( $hook ) {
-		global $pagenow;
+	public static function network_mapping_configuration() {
 		echo '<div class="wrap">';
-		$screen = get_current_screen();
-		echo '<h2>' . $screen->id . '<h2>';
-		echo '<h2>' . $pagenow . '<h2>';
+		echo '<h2>' . __FUNCTION__ . '<h2>';
 		dm_admin_page();
 		echo '</div>';
 	}
@@ -622,23 +1095,23 @@ if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
 	 */
 	// public static function domain_mapping_subsite_menus() {
 	public static function domain_mapping_network_menus() {
-		add_menu_page( 'Mapping Aliases', 'Mapping Aliases', 'manage_options', 'map-your-domain.php', array( __CLASS__, 'main_domain_mapping_page' ), 'dashicons-networking', 9 );
-
 		// add_submenu_page( 'map-your-domain.php', 'Mapping your Domain', 'Mapping your Domain', 'manage_options', 'dm_admin_page', array( __CLASS__, 'mapped_subsite_page' ) );
 		// add_submenu_page( 'map-your-domain.php', 'Mapt Domains', 'Mapt Domains', 'manage_options', 'dm_domains_admin', array( __CLASS__, 'dm_domains_admin' ) );
-		add_submenu_page( 'map-your-domain.php', 'Network Domains', 'Network Domains', 'manage_options', 'dm_domains_admin', array( __CLASS__, 'network_assigning_mapping' ) );
-		add_submenu_page( 'map-your-domain.php', 'Network Domain Mapping', 'Network Domain Mapping', 'manage_options', 'domain-mapping-admin.php', array( __CLASS__, 'network_mapping_configuration' ) );
+		add_submenu_page( 'map-your-domain.php', 'Mapt Domains', 'Mapt Domains', 'manage_options', 'dm_domains_admin', array( __CLASS__, 'network_assigning_mapping' ) );
+		add_submenu_page( 'map-your-domain.php', 'Domain Mapping', 'Domain Mapping', 'manage_options', 'dm_admin_page', array( __CLASS__, 'network_mapping_configuration' ) );
 	}
+
 	/**
 	 * Add Submenu page
 	 **/
-	public static function main_domain_mapping_page() {
+	public static function main_domain_mapping_page( $hook ) {
+		global $current_site, $wpdb;
 
 		echo '<div class="wrap">';
 		echo '<h2>' . __FUNCTION__ . '</h2>';
-		echo '<h2>something' . $hook . '</h2>';
-		echo '</div>';
-		if ( is_network_admin() ) {
+		echo '<h2>' . $hook . '</h2>';
+
+		if ( ! is_network_admin() ) {
 			echo '<h3 style="color:#700;">You are viewing the WordPress MultiSite network administration paffffge ' . $hook . '</h3>';
 		} else {
 			$blog_id = get_current_blog_id();
@@ -653,33 +1126,8 @@ if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
 			}
 		}
 
-	}
-
-	/**
-	 * Add Submenu page
-	 **/
-	public static function main_subdomain_mapping_page() {
-		global $current_site, $wpdb;
-		$screen = get_current_screen();
-		echo '<div class="wrap">';
-		echo '<h2>' . __FUNCTION__ . '</h2>';
-		if ( 'edit.php' !== $screen->id ) {
-			echo '<h2>' . $screen->id . '</h2>';
-		}
-
-		if ( is_network_admin() ) {
-			echo '<h3 style="color:#700;">You are viewing the WordPress MultiSite network administration paffffge ' . $screen->id . '</h3>';
-		} else {
-			$blog_id = get_current_blog_id();
-			echo '<h3 style="color:#700;">You are viewing a WordPress MultiSite subsite #' . $blog_id . ' admin page' . $hook . '</h3>';
-			if ( $blog_id ) {
-				echo $hook;
-				dm_manage_page();
-				echo '<pre>';
-				// var_dump( $var );
-				// print_r( get_blog_details( $blog_id ) );
-				echo '</pre>';
-			}
+		if ( get_site_option( 'dm_user_settings' ) && $current_site->blog_id != $wpdb->blogid && ! self::dm_sunrise_warning( false ) ) {
+			add_management_page( __( 'Domain Mapping', 'cmpbl-domain-mapping' ), __( 'Domain Mapping', 'cmpbl-domain-mapping' ), 'manage_options', 'domainmapping', array( __CLASS__, 'dm_manage_page' ) );
 		}
 		echo '</div>';
 	}
@@ -731,6 +1179,26 @@ if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
 		echo '<h2>' . __FUNCTION__ . '</h2>';
 		// self::dm_manage_page();
 		dm_manage_page();
+
+		// $blog_id = get_current_blog_id();
+		// echo 'Blog_id ' . $blog_id . ' is type ' . gettype( $blog_id ) . '<br>';
+		// $mapped_alias = self::get_mapped_domains_array();
+		// echo '<h3>Mapped Aliases</h3>';
+		// foreach ( $mapped_alias as $key => $value ) {
+		// echo '$mapped_alias->blog_id ' . $value->blog_id . ' is type ' . gettype( $value->blog_id ) . '<br>';
+		// echo '$mapped_alias->blog_id ' . $value->blog_id . ' is type ' . gettype( intval( $value->blog_id ) ) . '<br>';
+		// $alias_id = intval( $value->blog_id );
+		// if ( $blog_id == $alias_id ) {
+		// echo '<h4><a href="' . esc_url( $value->domain ) . '" target="_blank">' . esc_url( $value->domain ) . '</a></h4>';
+		// }
+		// }
 	}
 
+
+	/**
+	 * Do we need to set a text domain?
+	 */
+	public static function dm_idn_warning() {
+		return sprintf( __( 'International Domain Names should be in <a href="%s">punycode</a> format.', 'cmpbl-domain-mapping' ), 'http://api.webnic.cc/idnconversion.html' );
+	}
 }
