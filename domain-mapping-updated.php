@@ -4,17 +4,16 @@
  *
  * URI: https://github.com/pbrocks/domain-mapping-updated
  * Description: WordPress MU Domain Mapping (patched). Map any blog on a WordPress website to another domain.
- * Version: 1.9.3
+ * Version: 1.9.4
  * Network: true
  * Author: Donncha O Caoimh & pbrocks
  * AuthorURI https://github.com/pbrocks
  */
 
-
 namespace Domain_Mapping_Updated;
 
 /**
- * First, I define a constant to see if site is network activated
+ * Define a constant to check if site is network activated
  */
 if ( ! function_exists( 'is_plugin_active_for_network' ) ) {
 	// Makes sure the plugin is defined before trying to use it
