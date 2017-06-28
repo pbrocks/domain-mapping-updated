@@ -572,7 +572,7 @@ if ( get_site_option( 'dm_no_primary_domain' ) == 1 ) {
 	}
 
 	public static function set_column_width() {
-		echo '<style>#blogname, #alias { width: 20%; } .alias > h4 { margin: 0 0 .2rem; } #blog_id { width: 9%; }</style>';
+		echo '<style>#blogname, #alias { width: 30%; } .alias > h4 { margin: 0 0 .2rem; } #users, #blog_id { width: 10%; }</style>';
 	}
 
 	/**
