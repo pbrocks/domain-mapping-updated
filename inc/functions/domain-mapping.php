@@ -1045,49 +1045,6 @@ function delete_blog_domain_mapping( $blog_id, $drop ) {
 add_action( 'delete_blog', 'delete_blog_domain_mapping', 1, 2 );
 
 /**
- * show mapping on site admin blogs screen
- *
- * @param  [type] $columns [description]
- * @return [type]          [description]
- */
-function ra_domain_mapping_columns( $columns ) {
-	$columns['map'] = __( 'Mapping' );
-	return $columns;
-}
-// add_filter( 'wpmu_blogs_columns', 'ra_domain_mapping_columns' );
-/**
- * [ra_domain_mapping_field description]
- *
- * @param  [type] $column  [description]
- * @param  [type] $blog_id [description]
- * @return [type]          [description]
- */
-function ra_domain_mapping_field( $column, $blog_id ) {
-	global $wpdb;
-	static $maps = false;
-
-	if ( $column == 'map' ) {
-		if ( $maps === false ) {
-			$wpdb->dmtable = $wpdb->base_prefix . 'domain_mapping';
-			$work = $wpdb->get_results( "SELECT blog_id, domain FROM {$wpdb->dmtable} ORDER BY blog_id" );
-			$maps = array();
-			if ( $work ) {
-				foreach ( $work as $blog ) {
-					$maps[ $blog->blog_id ][] = $blog->domain;
-				}
-			}
-		}
-		if ( ! empty( $maps[ $blog_id ] ) && is_array( $maps[ $blog_id ] ) ) {
-			foreach ( $maps[ $blog_id ] as $blog ) {
-				echo $blog . '<br>';
-			}
-		}
-	}
-}
-// add_action( 'manage_blogs_custom_column', 'ra_domain_mapping_field', 1, 3 );
-// add_action( 'manage_sites_custom_column', 'ra_domain_mapping_field', 1, 3 );
-//
-/**
  * [dm_site_admin description]
  *
  * @return [type] [description]
