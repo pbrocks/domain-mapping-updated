@@ -26,16 +26,15 @@ class Domain_Mapping_Additions {
 	public static function init() {
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'domain_mapping_scripts' ) );
 		add_action( 'wp_head', array( __CLASS__, 'fixing_header_images' ) );
-		add_action( 'wp_head', array( __CLASS__, 'fixing_background_images' ) );
-		add_action( 'wp_head', array( __CLASS__, 'fixing_meta_images' ) );
-		add_filter( 'nav_menu_link_attributes', array( __CLASS__, 'dm_fix_nav_menu_item_url', 11, 3 ) );
-		add_filter( 'upload_dir', array( __CLASS__, 'dm_fix_upload_url' ) );
-		add_filter( 'wp_get_attachment_url', array( __CLASS__, 'dm_fix_wp_get_attachment_url' ) );
-		add_filter( 'wp_get_attachment_thumb_url', array( __CLASS__, 'dm_fix_wp_get_attachment_url' ) );
-		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'domain_mapping_scripts' ) );
-		add_action( 'wp_head', array( __CLASS__, 'spit_out_stuff' ) );
-		add_action( 'admin_menu', array( __CLASS__, 'mapped_aliases_dashboard_menu' ) );
-
+		// add_action( 'wp_head', array( __CLASS__, 'fixing_background_images' ) );
+		// add_action( 'wp_head', array( __CLASS__, 'fixing_meta_images' ) );
+		// add_filter( 'nav_menu_link_attributes', array( __CLASS__, 'dm_fix_nav_menu_item_url', 11, 3 ) );
+		// add_filter( 'upload_dir', array( __CLASS__, 'dm_fix_upload_url' ) );
+		// add_filter( 'wp_get_attachment_url', array( __CLASS__, 'dm_fix_wp_get_attachment_url' ) );
+		// add_filter( 'wp_get_attachment_thumb_url', array( __CLASS__, 'dm_fix_wp_get_attachment_url' ) );
+		// add_action( 'wp_enqueue_scripts', array( __CLASS__, 'domain_mapping_scripts' ) );
+		// add_action( 'wp_head', array( __CLASS__, 'spit_out_stuff' ) );
+		// add_action( 'admin_menu', array( __CLASS__, 'mapped_aliases_dashboard_menu' ) );
 	}
 
 	/**
@@ -96,7 +95,7 @@ class Domain_Mapping_Additions {
 		$origurl = Domain_Mapping::get_original_url( 'siteurl' );
 
 		$uploaddir['baseurl'] = str_replace( $origurl, $siteurl, $uploaddir['baseurl'] );
-		$uploaddir['url'] = str_replace( $origurl, $siteurl, $uploaddir['url'] );
+		$uploaddir['url']     = str_replace( $origurl, $siteurl, $uploaddir['url'] );
 
 		return $uploaddir;
 	}
@@ -126,8 +125,6 @@ class Domain_Mapping_Additions {
 		}
 		return $atts;
 	}
-
-
 
 	/**
 	 * Forces all srcset images to be HTTPS.
@@ -161,8 +158,8 @@ class Domain_Mapping_Additions {
 				}
 
 				// Make sure we actually have some data before saving it back into an array.
-				$return_value = isset( $value ) ? $value : array();
-				$return_key   = isset( $key ) ?  $key : '';
+				$return_value = isset( $value )?$value:array();
+				$return_key   = isset( $key )?$key:'';
 
 				// Save that so we can return it.
 				$return_sources[ $return_key ] = $return_value;
@@ -181,9 +178,8 @@ class Domain_Mapping_Additions {
 	 */
 	public static function domain_mapping_scripts() {
 		wp_enqueue_style( 'show-stuff', plugins_url( '../css/show-stuff.css', __FILE__ ) );
-		wp_enqueue_script( 'show-stuff', plugins_url( '../js/show-stuff.js',  __FILE__ ), array( 'jquery' ) );
+		wp_enqueue_script( 'show-stuff', plugins_url( '../js/show-stuff.js', __FILE__ ), array( 'jquery' ) );
 	}
-
 
 	/**
 	 * Description
@@ -224,9 +220,8 @@ class Domain_Mapping_Additions {
 	 * Will change to csc.
 	 */
 	public static function window_size_scripts() {
-		wp_enqueue_script( 'window-size', plugins_url( '../js/window-size.js',  __FILE__ ), array( 'jquery' ) );
+		wp_enqueue_script( 'window-size', plugins_url( '../js/window-size.js', __FILE__ ), array( 'jquery' ) );
 	}
-
 
 	public static function mapped_aliases_dashboard_menu() {
 		add_dashboard_page( __( 'Mapped Aliases Dashboard', 'textdomain' ), __( 'Mapped Aliases', 'textdomain' ), 'read', 'mapped-aliases-page', array( __CLASS__, 'mapped_domains_array_page' ) );
@@ -241,7 +236,7 @@ class Domain_Mapping_Additions {
 		global $override_domain;
 
 		$blog_id = get_current_blog_id();
-		$home = get_blog_option( $blog_id, 'home' );
+		$home    = get_blog_option( $blog_id, 'home' );
 		$siteurl = get_blog_option( $blog_id, 'siteurl' );
 
 		if ( function_exists( 'pbrx_get_authoring_domain' ) ) {
