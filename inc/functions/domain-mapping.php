@@ -118,7 +118,7 @@ function dm_domains_admin() {
 		install_in_root_warning();
 	}
 
-	echo '<h2>' . __( '0ld Adding/Editing Domains', 'domain-mapping-updated' ) . '</h2>';
+	echo '<h2>' . __( 'Adding/Editing Mapped Domains', 'domain-mapping-updated' ) . '</h2>';
 
 	if ( ! empty( $_POST['action'] ) ) {
 		check_admin_referer( 'domain_mapping' );
@@ -181,8 +181,9 @@ function dm_domains_admin() {
 	dm_edit_domain();
 	echo '</div><div class="container-inner">';
 	new_list_mapped_domains();
-	echo '</div></div>';
+	echo '</div>';
 }//end dm_domains_admin()
+
 /**
  * [new_search_listed_domains description]
  *
@@ -194,12 +195,12 @@ function new_search_listed_domains() {
 		return false;
 	}
 
-	echo '<h3>' . __( '0ld Search Domains', 'domain-mapping-updated' ) . '</h3><div class="container-padding">';
+	echo '<h3>' . __( 'Search Existing Domains', 'domain-mapping-updated' ) . '</h3><div class="container-padding">';
 	echo '<form method="POST">';
 	wp_nonce_field( 'domain_mapping' );
 	echo '<input type="hidden" name="action" value="search" />';
 	echo '<p>';
-	echo _e( '0ld Domain:', 'domain-mapping-updated' );
+	echo _e( 'Enter a mapped domain:', 'domain-mapping-updated' );
 	echo " <input type='text' name='domain' value='' /></p>";
 	echo "<p><input type='submit' class='button-secondary' value='" . __( 'Search', 'domain-mapping-updated' ) . "' /></p>";
 	echo '</form><br></div>';
@@ -326,7 +327,7 @@ function dm_admin_page() {
  */
 function dm_admin_page_config() {
 	echo '<div class=wrap>';
-	echo '<h2>' . __( '0ld Configuring Domain Mapping', 'domain-mapping-updated' ) . '</h2>';
+	echo '<h2>' . __( 'Configuring Domain Mapping Settings', 'domain-mapping-updated' ) . '</h2>';
 
 	echo '<div class="container-full"><div class="container-inner"><div class="container-padding">';
 
