@@ -249,10 +249,7 @@ function dm_edit_domain( $row = false ) {
 	echo "/></td></tr>\n";
 
 	echo '</table>';
-	// if ( '1' === get_site_option( 'dm_no_primary_domain' ) ) {
-		// echo primary_domains_disabled_salmon();
-		// echo "<tr><td colspan='2'>" . primary_domains_disabled_salmon() . '</td></tr>';
-	// }
+
 	echo "<p><input type='submit' class='button-primary' value='" . __( 'Save', 'domain-mapping-updated' ) . "' /></p></form><br><br></div>";
 }
 
@@ -553,7 +550,7 @@ function dm_manage_page() {
 
 	echo '<div class="wrap">';
 
-	echo '<h2>' . sprintf( 'Domain Mapping %s', __FUNCTION__, 'domain-mapping-updated' ) . '</h2>';
+	echo '<h2>' . sprintf( 'Domain Mapping %s ', __LINE__, 'domain-mapping-updated' ) . '</h2>';
 
 	if ( false == get_site_option( 'dm_ipaddress' ) && false == get_site_option( 'dm_cname' ) ) {
 		if ( dm_site_admin() ) {
@@ -572,12 +569,12 @@ function dm_manage_page() {
 	wp_nonce_field( 'domain_mapping' );
 
 	if ( '1' === get_site_option( 'dm_no_primary_domain' ) ) {
-		// <<PRIM>>
+
 		echo  __( '<p class="gray">Domains can be added, but not set as Primary</p>', 'domain-mapping-updated' ) . '</p>';
 	} else {
 		echo '<input type="checkbox" name="primary" value="1"  /> ' . __( 'Set as Primary domain for this site.', 'domain-mapping-updated' ) . '</p>';
 	}
-	// <<PRIM>>
+
 	echo '<p><input type="submit" class="button-secondary" value="' . __( 'Add', 'domain-mapping-updated' ) . '" /></p>';
 	echo '</form><br>';
 	echo '</div></div><div class="container-right">';
@@ -613,21 +610,25 @@ function dm_manage_page() {
 			}
 			echo '/>';
 			$url = "{$protocol}{$details[ 'domain' ]}{$details[ 'path' ]}";
-			echo "</td><td><a href='$url'>$url</a></td><td style='text-align: center'>";
+			echo "</td><td><a href='$url' target='_blank'>$url</a></td><td style='text-align: center'>";
 			if ( $details['domain'] != $orig_url['host'] && $details['active'] != 1 ) {
 				echo "<a href='" . wp_nonce_url(add_query_arg(array(
 					'domain' => $details['domain'],
 				), $del_url), 'delete' . $details['domain']) . "'>Del</a>";
 			}
 			echo '</td></tr>';
-			if ( 0 == $primary_found ) {
+			if ( 0 === $primary_found ) {
 				$primary_found = $details['active'];
 			}
 		} ?></table><?php
-		// <<PRIM>>
+
 		echo '<p class="gray">' . __( 'Neither the original domain nor a primary domain can be deleted.', 'domain-mapping-updated' ) . '</p>';
 		echo '<input type="hidden" name="action" value="primary" />';
-		echo '<p><input type="submit" class="button-primary" value="' . __( 'Set Primary Domain', 'domain-mapping-updated' ) . '" /></p>';
+if ( '1' === get_site_option( 'dm_no_primary_domain' ) ) {
+	echo '<p><input type="submit" disabled class="button-primary" value="' . __( 'Set Primary Domain', 'domain-mapping-updated' ) . '" /></p>';
+} else {
+	echo '<p><input type="submit" class="button-primary" value="' . __( 'Set Primary Domain', 'domain-mapping-updated' ) . '" /></p>';
+}
 		wp_nonce_field( 'domain_mapping' );
 		echo '</form></div>';
 
@@ -1053,7 +1054,7 @@ function ra_domain_mapping_columns( $columns ) {
 	$columns['map'] = __( 'Mapping' );
 	return $columns;
 }
-add_filter( 'wpmu_blogs_columns', 'ra_domain_mapping_columns' );
+// add_filter( 'wpmu_blogs_columns', 'ra_domain_mapping_columns' );
 /**
  * [ra_domain_mapping_field description]
  *
