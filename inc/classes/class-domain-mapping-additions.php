@@ -92,7 +92,7 @@ class Domain_Mapping_Additions {
 	 */
 	public static function dm_fix_upload_url( $uploaddir ) {
 		$siteurl = get_bloginfo( 'wpurl' );
-		$origurl = Domain_Mapping::get_original_url( 'siteurl' );
+		$origurl = get_original_url( 'siteurl' );
 
 		$uploaddir['baseurl'] = str_replace( $origurl, $siteurl, $uploaddir['baseurl'] );
 		$uploaddir['url']     = str_replace( $origurl, $siteurl, $uploaddir['url'] );
@@ -107,7 +107,7 @@ class Domain_Mapping_Additions {
 	 */
 	public static function dm_fix_wp_get_attachment_url( $url ) {
 		$siteurl = get_bloginfo( 'wpurl' );
-		$origurl = Domain_Mapping::get_original_url( 'siteurl' );
+		$origurl = get_original_url( 'siteurl' );
 
 		return str_replace( $origurl, $siteurl, $url );
 	}
@@ -119,7 +119,7 @@ class Domain_Mapping_Additions {
 	 */
 	public static function dm_fix_nav_menu_item_url( $atts, $item, $args ) {
 		$siteurl = get_bloginfo( 'wpurl' );
-		$origurl = Domain_Mapping::get_original_url( 'siteurl' );
+		$origurl = get_original_url( 'siteurl' );
 		if ( array_key_exists( 'href', $atts ) ) {
 			$atts['href'] = str_replace( $origurl, $siteurl, $atts['href'] );
 		}
@@ -263,7 +263,7 @@ class Domain_Mapping_Additions {
 	public static function mapped_domains_array_page() {
 		echo '<div class="wrap"><h2>' . __FUNCTION__ . '</h2>';
 
-		$mapped_alias = Domain_Mapping::get_mapped_domains_array();
+		$mapped_alias = get_mapped_domains_array();
 
 		echo '<pre>mapped_alias ';
 		print_r( $mapped_alias );
