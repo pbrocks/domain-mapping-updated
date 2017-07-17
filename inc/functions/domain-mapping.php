@@ -550,7 +550,7 @@ function dm_manage_page() {
 
 	echo '<div class="wrap">';
 
-	echo '<h2>' . sprintf( 'Domain Mapping %s ', __LINE__, 'domain-mapping-updated' ) . '</h2>';
+	echo '<h2>' . __( 'Domain Mapping', 'domain-mapping-updated' ) . '</h2>';
 
 	if ( false == get_site_option( 'dm_ipaddress' ) && false == get_site_option( 'dm_cname' ) ) {
 		if ( dm_site_admin() ) {
@@ -590,7 +590,7 @@ function dm_manage_page() {
 			'active' => 0,
 		);
 
-		echo '<h3>' . __( 'Active domains on this blog ' . __FUNCTION__, 'domain-mapping-updated' ) . '</h3>';
+		echo '<h3>' . __( 'Active domains on this blog', 'domain-mapping-updated' ) . '</h3>';
 		echo '<div class="container-padding"><form method="POST">';
 		echo '<table><tr><th>' . __( 'Primary', 'domain-mapping-updated' ) . '</th><th>' . __( 'Domain', 'domain-mapping-updated' ) . '</th><th>' . __( 'Delete', 'domain-mapping-updated' ) . "</th></tr>\n";
 		$primary_found = 0;
